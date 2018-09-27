@@ -15,5 +15,4 @@ LazyData: true
 Author: Marian Necula [aut, cre],
   Bogdan Oancea [aut],
   Ana Maria Tiru [aut]
-  
-  
+RoxygenNote: 6.0.1
