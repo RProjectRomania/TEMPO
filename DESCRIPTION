@@ -1,10 +1,19 @@
 Package: TEMPO
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Tools for NSI Romania Open data
 Version: 0.0.0.1
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: Access TEMPO Online database from R
-License: What license is it under?
+Authors@R: c(
+  person("Marian", "Necula", email = "marian.necula@inssero", role = c("aut", "cre")),
+  person("Bogdan", "Oancea", email = "bogdan.oancea@gmail.com", role = "aut"),  
+  person("Ana Maria", "Tiru", role = "aut"))
+Maintainer: Marian Necula <marian.necula@insse.ro>
+Description: Tools to download data from Tempo Online Database and build different visualisations of the data
+License: EUPL
+Depends: R (>= 3.3.0)
 Encoding: UTF-8
 LazyData: true
+Author: Marian Necula [aut, cre],
+  Bogdan Oancea [aut],
+  Ana Maria Tiru [aut]
+  
+  
