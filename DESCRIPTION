@@ -8,7 +8,7 @@ Authors@R: c(
   person("Ana Maria", "Tiru", role = "aut"))
 Maintainer: Marian Necula <marian.necula@insse.ro>
 Description: Tools to download data from Tempo Online Database and build different visualisations of the data
-License: EUPL
+License: GPL3 + EUPL
 Depends: R (>= 3.3.0)
 Encoding: UTF-8
 LazyData: true

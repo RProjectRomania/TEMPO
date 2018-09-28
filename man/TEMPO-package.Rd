@@ -14,7 +14,7 @@ Package: \tab TEMPO\cr
 Type: \tab Package\cr
 Version: \tab See sessionInfo() or DESCRIPTION file\cr
 Date: \tab 2018\cr
-License: \tab GPL + EUPL LICENSE\cr
+License: \tab GPL3 + EUPL LICENSE\cr
 LazyLoad: \tab yes\cr
 }
 
