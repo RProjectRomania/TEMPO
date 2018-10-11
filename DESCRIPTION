@@ -9,7 +9,10 @@ Authors@R: c(
 Maintainer: Marian Necula <marian.necula@insse.ro>
 Description: Tools to download data from Tempo Online Database and build different visualisations of the data
 License: GPL3 + EUPL
-Depends: R (>= 3.3.0)
+Depends:
+    httr,
+    jsonlite,
+    R (>= 3.3.0)
 Encoding: UTF-8
 LazyData: true
 Author: Marian Necula [aut, cre],
