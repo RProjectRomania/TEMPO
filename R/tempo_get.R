@@ -12,11 +12,6 @@
 #' 
 #' @return Returns a dataframe object. 
 #' 
-#' @author Bogdan Oancea, Ana Tiru and Marian Necula 
-#' members of the Romanian NIS Experimental Statistics
-#' \url{http://www.insse.ro/cms/ro/statistici-experimentale}
-#' \email{statistici.experimentale@insse.ro}
-#' 
 #' @details This function sends GET/POST requests to TEMPO Online JSON service
 #' and parses the content of the responses, using  \code{\link{httr}} wrappers
 #' for \code{\link{RCurl::httpGET}} and \code{\link{RCurl::httpPOST}}.
@@ -53,8 +48,8 @@ for(i in 1:length(matrix_df$options)){
   matrix_df_loc <- matrix_df$options[[i]]$nomItemId
   matrix_df_loc <- unlist(matrix_df_loc)
   
-  if(length(matrix_df_loc) > 150){
-    matrix_df_loc_list <- split(matrix_df_loc, ceiling(seq_along(matrix_df_loc)/150)) 
+  if(length(matrix_df_loc) > 400){
+    matrix_df_loc_list <- split(matrix_df_loc, ceiling(seq_along(matrix_df_loc)/400)) 
     encQuery <- paste0(encQuery, "replace_me", ":")
    
   } else {
@@ -78,7 +73,7 @@ if(is.null(matrix_df_loc_list)){
   csv_content <- NULL
   for(j in 1:length(matrix_df_loc_list)){
     matrix_df_loc <- paste0(matrix_df_loc_list[[j]], sep = ",", collapse = " ")
-    matrix_df_loc <<- gsub(",:", ":", matrix_df_loc)
+    matrix_df_loc <- gsub(",:", ":", matrix_df_loc)
     mencQuery <- sub("replace_me", matrix_df_loc, encQuery)
     mencQuery <- sub(",:", ":", mencQuery)
     mencQuery <- sub("\\:$", "", mencQuery)

@@ -11,12 +11,7 @@
 #' how to obtain a matrix code from \code{\link{tempo_codes}}
 #'
 #' @return Returns a R dataframe object. 
-#' 
-#' @author Bogdan Oancea, Ana Tiru and Marian Necula 
-#' members of the Romanian NIS Experimental Statistics
-#' \url{http://www.insse.ro/cms/ro/statistici-experimentale}
-#' \email{statistici.experimentale@insse.ro}
-#' 
+
 #' @details This function removes redundant columns or redundant information from columns
 #' 
 #' @examples 

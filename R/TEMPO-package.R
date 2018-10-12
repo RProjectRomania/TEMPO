@@ -16,10 +16,10 @@
 #' @docType package
 #' @title R Tools for NSI Romania Open data
 #'
-#' @author Marian Necula, Bogdan Oancea, Ana Maria Tiru \email{marian.necula@insse.ro} \url{https://github.com/MarianNecula/TEMPO}
+#' @author Marian Necula, Bogdan Oancea, Ana Maria Tiru \email{marian.necula00@gmail.com} \url{https://github.com/RProjectRomania/TEMPO.git}
 #' @references
 #' See citation("TEMPO")
-#' \url{https://github.com/MarianNecula/TEMPO}
+#' \url{https://github.com/RProjectRomania/TEMPO.git}
 #' @examples library(TEMPO)
 #' @keywords package
 NULL

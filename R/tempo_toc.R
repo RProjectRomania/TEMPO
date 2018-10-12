@@ -12,10 +12,6 @@
 #' 
 #' @return Returns a dataframe object. 
 #' 
-#' @author Bogdan Oancea, Ana Tiru and Marian Necula 
-#' members of the Romanian NIS Experimental Statistics
-#' \url{http://www.insse.ro/cms/ro/statistici-experimentale}
-#' \email{statistici.experimentale@insse.ro}
 #' 
 #' @details This functions sends one or multiple GET requests and parses the content into 
 #' a dataframe
