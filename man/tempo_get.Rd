@@ -25,7 +25,7 @@ for \code{\link{RCurl::httpGET}} and \code{\link{RCurl::httpPOST}}.
 The content of the \code{\link{httr::POST}} requests is parsed into a dataframe.
 }
 \examples{
-\dontrun '{'tempo_get("SOM101D", "ro")'}'
+\dontrun {tempo_get("SOM101D", "ro")}
 }
 \author{
 Bogdan Oancea, Ana Tiru and Marian Necula 

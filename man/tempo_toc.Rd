@@ -23,7 +23,7 @@ This functions sends one or multiple GET requests and parses the content into
 a dataframe
 }
 \examples{
-\dontrun '{tempo_toc(full_description = FALSE)}'
+\dontrun {tempo_toc(full_description = FALSE)}
 }
 \author{
 Bogdan Oancea, Ana Tiru and Marian Necula 
