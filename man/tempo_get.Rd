@@ -18,7 +18,8 @@ is given, implicitly downloads tables in Romanian}
 \item{clean}{- calls \code{\link{tempo_clean}} function. Implicitly is set as FALSE}
 }
 \value{
-Returns a dataframe object.
+Returns a dataframe object, which contains a comment attribute with
+the full name of the table.
 }
 \description{
 tempo_get downloads a a table from 
@@ -31,5 +32,5 @@ for \code{\link{RCurl::httpGET}} and \code{\link{RCurl::httpPOST}}.
 The content of the \code{\link{httr::POST}} requests is parsed into a dataframe.
 }
 \examples{
-\dontrun {tempo_get("SOM101D", "ro")}
+{tempo_get("SOM101D", "ro")}
 }
