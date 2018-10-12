@@ -14,10 +14,7 @@
 
 #' @details This function removes redundant columns or redundant information from columns
 #' 
-#' @examples 
-#' \dontrun {
-#' tempo_clean(SOM101D, "SOM101D")
-#' }
+#' @examples tempo_clean(SOM101D, "SOM101D")
 #' 
 #' @export
 
