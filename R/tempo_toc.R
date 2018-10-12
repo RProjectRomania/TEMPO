@@ -16,8 +16,7 @@
 #' @details This functions sends one or multiple GET requests and parses the content into 
 #' a dataframe
 #' 
-#' @examples 
-#' \dontrun {tempo_toc(full_description = FALSE)}
+#' @examples tempo_toc(full_description = FALSE)
 #' @export
 
 
