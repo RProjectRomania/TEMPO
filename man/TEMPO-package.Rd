@@ -6,7 +6,7 @@
 \alias{TEMPO}
 \title{R Tools for NSI Romania Open data}
 \description{
-Brief summary of the eurostat package
+Brief summary of the TEMPO package
 }
 \details{
 \tabular{ll}{
@@ -25,9 +25,9 @@ library(TEMPO)
 }
 \references{
 See citation("TEMPO")
-\url{https://github.com/MarianNecula/TEMPO}
+\url{https://github.com/RProjectRomania/TEMPO.git}
 }
 \author{
-Marian Necula, Bogdan Oancea, Ana Maria Tiru \email{marian.necula@insse.ro} \url{https://github.com/MarianNecula/TEMPO}
+Marian Necula, Bogdan Oancea, Ana Maria Tiru \email{marian.necula00@gmail.com} \url{https://github.com/RProjectRomania/TEMPO.git}
 }
 \keyword{package}

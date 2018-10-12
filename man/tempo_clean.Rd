@@ -30,9 +30,3 @@ tempo_clean(SOM101D, "SOM101D")
 }
 
 }
-\author{
-Bogdan Oancea, Ana Tiru and Marian Necula 
-members of the Romanian NIS Experimental Statistics
-\url{http://www.insse.ro/cms/ro/statistici-experimentale}
-\email{statistici.experimentale@insse.ro}
-}

@@ -4,12 +4,18 @@
 \alias{tempo_get}
 \title{Download a table from TEMPO Online database}
 \usage{
-tempo_get(matrix_code = NULL, language = NULL)
+tempo_get(matrix_code = NULL, language = NULL, clean = FALSE)
 }
 \arguments{
 \item{matrix_code}{- string containing the code for 
 the table/matrix in TEMPO Online database. See more on
-how to obtain a matrix code from \code{\link{tempo_codes}}}
+how to obtain a matrix code from \code{\link{tempo_toc}}}
+
+\item{language}{- a string to set the language for the downloaded 
+tables. Options: "ro" - for Romanian and "en" - for English. If no parameter
+is given, implicitly downloads tables in Romanian}
+
+\item{clean}{- calls \code{\link{tempo_clean}} function. Implicitly is set as FALSE}
 }
 \value{
 Returns a dataframe object.
@@ -26,10 +32,4 @@ The content of the \code{\link{httr::POST}} requests is parsed into a dataframe.
 }
 \examples{
 \dontrun {tempo_get("SOM101D", "ro")}
-}
-\author{
-Bogdan Oancea, Ana Tiru and Marian Necula 
-members of the Romanian NIS Experimental Statistics
-\url{http://www.insse.ro/cms/ro/statistici-experimentale}
-\email{statistici.experimentale@insse.ro}
 }

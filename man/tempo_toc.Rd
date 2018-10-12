@@ -25,9 +25,3 @@ a dataframe
 \examples{
 \dontrun {tempo_toc(full_description = FALSE)}
 }
-\author{
-Bogdan Oancea, Ana Tiru and Marian Necula 
-members of the Romanian NIS Experimental Statistics
-\url{http://www.insse.ro/cms/ro/statistici-experimentale}
-\email{statistici.experimentale@insse.ro}
-}

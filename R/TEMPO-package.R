@@ -1,4 +1,4 @@
-#' Brief summary of the eurostat package
+#' Brief summary of the TEMPO package
 #'
 #' \tabular{ll}{
 #' Package: \tab TEMPO\cr

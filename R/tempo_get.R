@@ -5,10 +5,13 @@
 #' 
 #' @param matrix_code - string containing the code for 
 #' the table/matrix in TEMPO Online database. See more on
-#' how to obtain a matrix code from \code{\link{tempo_codes}}
+#' how to obtain a matrix code from \code{\link{tempo_toc}}
 #' 
 #' @param language - a string to set the language for the downloaded 
-#' tables. Options: "ro" - for Romanian and "en" - for English. If \code{\}
+#' tables. Options: "ro" - for Romanian and "en" - for English. If no parameter
+#' is given, implicitly downloads tables in Romanian
+#' 
+#' @param clean - calls \code{\link{tempo_clean}} function. Implicitly is set as FALSE
 #' 
 #' @return Returns a dataframe object. 
 #' 
@@ -17,18 +20,13 @@
 #' for \code{\link{RCurl::httpGET}} and \code{\link{RCurl::httpPOST}}.
 #' The content of the \code{\link{httr::POST}} requests is parsed into a dataframe.
 #' 
-#' @examples 
-#' \dontrun {tempo_get("SOM101D", "ro")}
+#' @examples \dontrun {tempo_get("SOM101D", "ro")}
 #' @export
 
 
-
-
-
-tempo_get <- function(matrix_code = NULL, language = NULL){
+tempo_get <- function(matrix_code = NULL, language = NULL, clean = FALSE){
   if(is.null(matrix_code)){
-   stop("matrix_code cannot be NULL.")
-  } 
+   stop("matrix_code cannot be NULL.") } 
 url_csv <- "http://statistici.insse.ro:8077/tempo-ins/pivot"
    
 url_get_matrix <- "http://statistici.insse.ro:8077/tempo-ins/matrix/"
@@ -81,6 +79,9 @@ if(is.null(matrix_df_loc_list)){
     csv_content_resp <- tempo_post(payload_csv, url_csv)
     csv_content <- rbind(csv_content, csv_content_resp)
     }
+}
+if(clean == TRUE){
+ csv_content <-  tempo_clean(csv_content, matrix_code)
 }
 assign(matrix_code, csv_content, envir = .GlobalEnv)
 
