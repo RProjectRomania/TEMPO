@@ -13,14 +13,15 @@
 #' 
 #' @param clean - calls \code{\link{tempo_clean}} function. Implicitly is set as FALSE
 #' 
-#' @return Returns a dataframe object. 
+#' @return Returns a dataframe object, which contains a comment attribute with
+#' the full name of the table.
 #' 
 #' @details This function sends GET/POST requests to TEMPO Online JSON service
 #' and parses the content of the responses, using  \code{\link{httr}} wrappers
 #' for \code{\link{RCurl::httpGET}} and \code{\link{RCurl::httpPOST}}.
 #' The content of the \code{\link{httr::POST}} requests is parsed into a dataframe.
 #' 
-#' @examples \dontrun {tempo_get("SOM101D", "ro")}
+#' @examples tempo_get("SOM101D", "ro")
 #' @export
 
 
@@ -62,13 +63,17 @@ matrix_df_loc_list <- matrix_df_loc_list
 
 if(is.null(matrix_df_loc_list)){
   payload_csv <- list(language = language,  encQuery = encQuery, matCode = matrix_code, matMaxDim = matrix_content$details$matMaxDim, matUMSpec = matrix_content$details$matUMSpec, matRegJ = matrix_content$details$matRegJ)
-  payload_json_csv <- toJSON(payload_csv, pretty =  TRUE, auto_unbox = TRUE, null = "null")
-  csv_response <- POST(url = url_csv, body = payload_json_csv, add_headers(.headers = c("Content-Type" = "application/json")), encode = "json")
-  csv_content <- content(csv_response, type = "text/csv", encoding = "UTF-8")
+  csv_content <- tempo_post(payload_csv, url_csv)
 
 } else {
   mencQuery <- NULL
   csv_content <- NULL
+
+################################################################
+# This can take very long time
+# Some form of concurrency is needed
+  
+  message("Beard growing in progress...")
   for(j in 1:length(matrix_df_loc_list)){
     matrix_df_loc <- paste0(matrix_df_loc_list[[j]], sep = ",", collapse = " ")
     matrix_df_loc <- gsub(",:", ":", matrix_df_loc)
@@ -80,9 +85,13 @@ if(is.null(matrix_df_loc_list)){
     csv_content <- rbind(csv_content, csv_content_resp)
     }
 }
+####################3#########################################
+
 if(clean == TRUE){
  csv_content <-  tempo_clean(csv_content, matrix_code)
 }
+
+comment(csv_content) <- matrix_content$matrixName
 assign(matrix_code, csv_content, envir = .GlobalEnv)
 
 }
