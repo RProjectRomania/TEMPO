@@ -23,5 +23,5 @@ This functions sends one or multiple GET requests and parses the content into
 a dataframe
 }
 \examples{
-{tempo_toc(full_description = FALSE)}
+tempo_toc(full_description = FALSE)
 }
