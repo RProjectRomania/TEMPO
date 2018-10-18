@@ -19,13 +19,19 @@
 #' 
 #' @export
 tempo_clean <- function(matrix, matrix_code){
-  if(!exists(deparse(substitute(matrix)))) {
-    print("Matrix not found!")
-    return(NULL)
+  if (nargs() != 2) {
+    print("Wrong number of arguments!")
+    return (NULL)
+  }
+    
+  tmp <- deparse(substitute(matrix))
+  if(!exists(tmp)) {
+    cat("Matrix not found:", tmp, "\n")
+    return (NULL)
   }
   
   if(is.null(matrix) | is.null(matrix_code) | !is.data.frame(matrix) | !is.character(matrix_code)){
-    return(NULL)
+    return (NULL)
   }
   
   column_names <- names(matrix)
