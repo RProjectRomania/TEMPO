@@ -33,4 +33,5 @@ The content of the \code{\link{httr::POST}} requests is parsed into a dataframe.
 }
 \examples{
 tempo_get("SOM101D", "ro")
+
 }

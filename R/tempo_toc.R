@@ -1,6 +1,3 @@
-# Get TOC for Tempo Online
-# function gets a parameter last_update implicitly false 
-# if fulldescription == TRUE then starts collecting dates for last updates 
 #' @title tempo_toc
 #' 
 #' @description Get TOC for Tempo Online
@@ -16,10 +13,12 @@
 #' @details This functions sends one or multiple GET requests and parses the content into 
 #' a dataframe
 #' 
-#' @examples tempo_toc(full_description = FALSE)
+#' @examples 
+#' tempo_toc(full_description = FALSE)
+#' 
+#' @import httr
+#' @import jsonlite
 #' @export
-
-
 tempo_toc <- function(full_description = FALSE){
   get_response <- GET("http://statistici.insse.ro:8077/tempo-ins/matrix/matrices")
   content_response <- content(get_response)

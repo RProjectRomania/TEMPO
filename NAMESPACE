@@ -3,3 +3,5 @@
 export(tempo_clean)
 export(tempo_get)
 export(tempo_toc)
+import(httr)
+import(jsonlite)

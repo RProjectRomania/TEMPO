@@ -24,4 +24,5 @@ a dataframe
 }
 \examples{
 tempo_toc(full_description = FALSE)
+
 }

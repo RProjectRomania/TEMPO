@@ -14,13 +14,10 @@
 
 #' @details This function removes redundant columns or redundant information from columns
 #' 
-#' @examples tempo_clean(SOM101D, "SOM101D")
+#' @examples 
+#' tempo_clean(SOM101D, "SOM101D")
 #' 
 #' @export
-
-
-
-
 tempo_clean <- function(matrix, matrix_code){
   if(is.null(matrix) | is.null(matrix_code) | !is.data.frame(matrix) | !is.character(matrix_code)){
     return(NULL)
