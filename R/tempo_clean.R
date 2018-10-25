@@ -23,43 +23,46 @@ tempo_clean <- function(matrix, matrix_code){
     print("Wrong number of arguments!")
     return (NULL)
   }
-    
+  
   tmp <- deparse(substitute(matrix))
-  if(!exists(tmp)) {
+  if (!exists(tmp)) {
     cat("Matrix not found:", tmp, "\n")
     return (NULL)
   }
   
-  if(is.null(matrix) | is.null(matrix_code) | !is.data.frame(matrix) | !is.character(matrix_code)){
+  if (is.null(matrix) | !is.data.frame(matrix)) {
+    type <- class(matrix)
+    cat("Invalid type (",type, ") of argument!\n", sep = "")
+    return (NULL)
+  }
+  
+  if (is.null(matrix_code) | !is.character(matrix_code)) {
+    type <- class(matrix_code)
+    cat("Invalid type (",type, ") of argument!\n", sep = "")
     return (NULL)
   }
   
   column_names <- names(matrix)
+  pos_ani <- grep("([aA]ni|[yY]ears)", column_names)
+  pos_um <- grep("(UM:|MU:)", column_names)
   
-  pos_ani = 0 #pozitia coloanei "ani", default 0 (undefined)
-  pos_um = 0 #pozitia coloanei "unitate masura", default 0 (undefined)
-  
-  if(length(grep("([aA]ni|[yY]ears)", column_names)) > 0) {
-    pos_ani <- grep("([aA]ni|[yY]ears)", column_names)[1]
-  
-    for(i in 1:nrow(matrix)) {
-      matrix[i,pos_ani] <- gsub("([aA]nul|[yY]ear) *", "", matrix[i,pos_ani])
-    }
-
+  if (length(pos_ani) > 0) {
+    pos_ani <- pos_ani[1]
+    matrix <- as.data.frame(matrix)
+    n <- nrow(matrix)
+    matrix[1:n,pos_ani] <- gsub("([aA]nul|[yY]ear) *", "", matrix[1:n,pos_ani])
     matrix[[pos_ani]] <- as.integer(matrix[[pos_ani]])
   }
   
-  
-  if(length(grep("(UM:|MU:)", column_names)) > 0){
-    pos_um <- grep("(UM:|MU:)", column_names)[1]
+  if (length(pos_um) > 0) {
+    pos_um <- pos_um[1]
     um <- gsub("(UM:|MU:) *", "", column_names[pos_um])
-    
     matrix <- matrix[,-c(pos_um)]
     names(matrix)[names(matrix) == "Valoare" | names(matrix) == "Value"] <- paste0(matrix_code, "/", um)
   }
   
-# Here the function overwrites the object in the Global Environment
-# which has the same name as the name given as parameter, i.e. matrix_code
+  # Here the function overwrites the object in the Global Environment
+  # which has the same name as the name given as parameter, i.e. matrix_code
   assign(matrix_code, matrix, envir = .GlobalEnv)
 }
 
