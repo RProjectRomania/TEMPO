@@ -38,10 +38,6 @@ tempo_toc <- function(full_description = FALSE){
       tempo_toc$Ancheta[i] <- lu_content$ancestors[[4]]$name 
       tempo_toc$Ultima_actualizare[i] <- lu_content$ultimaActualizare
     }
-
-    
-
   } 
-  assign("TOC_TEMPO", tempo_toc, envir = .GlobalEnv)
-
+  return(tempo_toc) 
 }

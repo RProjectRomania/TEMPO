@@ -61,8 +61,6 @@ tempo_clean <- function(matrix, matrix_code){
     names(matrix)[names(matrix) == "Valoare" | names(matrix) == "Value"] <- paste0(matrix_code, "/", um)
   }
   
-  # Here the function overwrites the object in the Global Environment
-  # which has the same name as the name given as parameter, i.e. matrix_code
-  assign(matrix_code, matrix, envir = .GlobalEnv)
+  return(matrix)
 }
 

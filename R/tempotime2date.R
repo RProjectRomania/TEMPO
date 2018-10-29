@@ -95,5 +95,5 @@ tempotime2date <- function(matrix, matrix_code){
   date <- as.Date(date, format = "%d-%m-%y")
   matrix[[pos]] <- date
   
-  assign(matrix_code, matrix, envir = .GlobalEnv)
+  return(matrix)
 }

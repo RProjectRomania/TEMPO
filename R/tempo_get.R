@@ -1,6 +1,6 @@
 #' @title Download a table from TEMPO Online database
 #' 
-#' @description tempo_get downloads a a table from 
+#' @description tempo_get downloads a table from 
 #' TEMPO Online database
 #' 
 #' @param matrix_code - string containing the code for 
@@ -92,8 +92,7 @@ tempo_get <- function(matrix_code = NULL, language = NULL, clean = FALSE){
   }
 
   comment(csv_content) <- matrix_content$matrixName
-  assign(matrix_code, csv_content, envir = .GlobalEnv)
-
+  return(csv_content) 
 }
 
 tempo_post <- function(payload_csv = NULL, url_csv = NULL){
