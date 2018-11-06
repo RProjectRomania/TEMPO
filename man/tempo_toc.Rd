@@ -7,7 +7,7 @@
 tempo_toc(full_description = FALSE)
 }
 \arguments{
-\item{fulldescription}{- implicitly set as false
+\item{full_description}{- implicitly set as false
 if fulldescription == TRUE then starts collecting dates for last updates}
 }
 \value{

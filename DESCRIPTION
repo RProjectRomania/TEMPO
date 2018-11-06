@@ -10,8 +10,9 @@ Maintainer: Marian Necula <marian.necula00@gmail.com>
 Description: Tools to download data from Tempo Online Database and build different visualisations of the data
 License: GPL3 + EUPL
 Depends:
-    httr,
+    curl,
     jsonlite,
+    utils,
     R (>= 3.3.0)
 Encoding: UTF-8
 LazyData: true

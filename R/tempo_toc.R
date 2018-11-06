@@ -4,7 +4,7 @@
 #' function gets a parameter full_description implicitly false 
 #' if fulldescription == TRUE then starts collecting dates for last updates 
 #' 
-#' @param fulldescription - implicitly set as false  
+#' @param full_description - implicitly set as false  
 #' if fulldescription == TRUE then starts collecting dates for last updates
 #' 
 #' @return Returns a dataframe object. 
@@ -16,32 +16,38 @@
 #' @examples 
 #' tempo_toc(full_description = FALSE)
 #' 
-#' @import httr
+#' @import curl
 #' @import jsonlite
+#' @importFrom utils write.csv
 #' @export
-tempo_toc <- function(full_description = FALSE){
-  get_response <- GET("http://statistici.insse.ro:8077/tempo-ins/matrix/matrices")
-  content_response <- content(get_response)
-  tempo_toc <- toJSON(content_response)
-  tempo_toc <- fromJSON(tempo_toc, flatten = TRUE)
-  tempo_toc <- lapply(tempo_toc, function(x){unlist(x)})
-  tempo_toc <- data.frame(tempo_toc, stringsAsFactors = FALSE)
-  tempo_toc <- tempo_toc[, c(1, 2)]
-  colnames(tempo_toc) <- c("Denumire", "Cod")
-  if(full_description == TRUE){
+
+tempo_toc <- function(full_description = FALSE) {
+  response <- curl_fetch_memory("http://statistici.insse.ro:8077/tempo-ins/matrix/matrices")
+  responsetext <- readBin(response$content, what = "text")
+  tempo_toc <- fromJSON(responsetext, flatten = TRUE)
+  tempo_toc <- tempo_toc[,c(1,2)]
+  if (full_description == TRUE) {
     message("This will take a while. Grab some coffee!")
-    for(i in 1:length(tempo_toc[,2])){
-      lu_response <- GET(paste0("http://statistici.insse.ro:8077/tempo-ins/matrix/", tempo_toc[i,2]))
-      lu_content <- content(lu_response)
-      tempo_toc$Domeniu_statistic[i] <- lu_content$ancestors[[2]]$name
-      tempo_toc$Sub_domeniu_statistic[i] <-  lu_content$ancestors[[3]]$name
-      tempo_toc$Ancheta[i] <- lu_content$ancestors[[4]]$name 
-      tempo_toc$Ultima_actualizare[i] <- lu_content$ultimaActualizare
+    for (i in 1:length(tempo_toc[, 2])) {
+      lu_response <-
+        curl_fetch_memory(paste0(
+          "http://statistici.insse.ro:8077/tempo-ins/matrix/",
+          tempo_toc[i, 2]
+        ))
+      lu_content <- readBin(lu_response$content, what = "text")
+      lu_content <- fromJSON(lu_content, flatten = TRUE)
+      tempo_toc$Domeniu_statistic[i] <-
+        lu_content$ancestors$name[2]
+      tempo_toc$Sub_domeniu_statistic[i] <-
+        lu_content$ancestors$name[3]
+      tempo_toc$Ancheta[i] <- lu_content$ancestors$name[4]
+      tempo_toc$Ultima_actualizare[i] <-
+        lu_content$ultimaActualizare
     }
-
     
-
-  } 
-  assign("TOC_TEMPO", tempo_toc, envir = .GlobalEnv)
-
+    
+    
+  }
+  return(tempo_toc)
+  
 }
