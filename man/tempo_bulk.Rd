@@ -30,11 +30,12 @@ the function skips them at download.
 
 }
 \examples{
+\dontrun{
 # Download a single table and write on disk
 tempo_bulk("SOM101D", "ro")
 
 # Downloads the whole TEMPO db and write each table on disk.
 # Can take a long time.
-tempo_bulk(TOC_TEMPO$COD, "ro") 
-
+# tempo_bulk(TOC_TEMPO$code, "ro") 
+}
 }

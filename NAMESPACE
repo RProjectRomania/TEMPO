@@ -3,6 +3,7 @@
 export(tempo_bulk)
 export(tempo_clean)
 export(tempo_toc)
+export(tempotime2date)
 import(curl)
 import(jsonlite)
-importFrom(utils,write.csv)
+import(utils)
