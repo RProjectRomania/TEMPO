@@ -18,7 +18,7 @@
 #' 
 #' @import curl
 #' @import jsonlite
-#' @importFrom utils write.csv
+#' @import utils 
 #' @export
 
 tempo_toc <- function(full_description = FALSE) {
@@ -36,18 +36,15 @@ tempo_toc <- function(full_description = FALSE) {
         ))
       lu_content <- readBin(lu_response$content, what = "text")
       lu_content <- fromJSON(lu_content, flatten = TRUE)
-      tempo_toc$Domeniu_statistic[i] <-
+      tempo_toc$Statistical_domain[i] <-
         lu_content$ancestors$name[2]
-      tempo_toc$Sub_domeniu_statistic[i] <-
+      tempo_toc$Statistical_sub_domain[i] <-
         lu_content$ancestors$name[3]
-      tempo_toc$Ancheta[i] <- lu_content$ancestors$name[4]
-      tempo_toc$Ultima_actualizare[i] <-
+      tempo_toc$Survey_name[i] <- lu_content$ancestors$name[4]
+      tempo_toc$Last_update[i] <-
         lu_content$ultimaActualizare
     }
-    
-    
-    
+
   }
   return(tempo_toc)
-  
 }

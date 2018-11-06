@@ -26,7 +26,7 @@
 #' 
 #' # Downloads the whole TEMPO db and write each table on disk.
 #' # Can take a long time.
-#' tempo_bulk(TOC_TEMPO$COD, "ro") 
+#' # tempo_bulk(TOC_TEMPO$code, "ro") 
 #' }
 #' @import curl
 #' @import jsonlite
