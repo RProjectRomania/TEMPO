@@ -29,7 +29,7 @@
 #TODO
 #add the language parameter for tempo_toc function
 tempo_search <- function(keyword = c(), language = c("ro", "en")){
-  toc <- tempo_toc(full_description = TRUE)
+  toc <- tempo_toc(full_description = TRUE, language = language)
   vchar <- apply(toc, 1 ,paste, collapse = " ")
   matched <- sapply(tolower(keyword), grep, tolower(vchar))
   index <- sort(unlist(matched))

@@ -21,8 +21,17 @@
 #' @import utils 
 #' @export
 
-tempo_toc <- function(full_description = FALSE) {
-  response <- curl_fetch_memory("http://statistici.insse.ro:8077/tempo-ins/matrix/matrices")
+tempo_toc <- function(full_description = FALSE, language = c("ro", "en")) {
+  if (language[1] == "ro") {
+    response <- curl_fetch_memory("http://statistici.insse.ro:8077/tempo-ins/matrix/matrices")
+    lang <- ""
+  } else if (language[1] == "en") {
+    response <- curl_fetch_memory("http://statistici.insse.ro:8077/tempo-ins/matrix/matrices/?lang=en/")
+    lang <- "/?lang=en/"
+  } else{
+    cat("Invalid argument for language: ", language[1], "\nArguments accepted: \"ro\" or \"en\".\n")
+    return (NULL)
+  }
   responsetext <- readBin(response$content, what = "text")
   tempo_toc <- fromJSON(responsetext, flatten = TRUE)
   tempo_toc <- tempo_toc[,c(1,2)]
@@ -32,7 +41,7 @@ tempo_toc <- function(full_description = FALSE) {
       lu_response <-
         curl_fetch_memory(paste0(
           "http://statistici.insse.ro:8077/tempo-ins/matrix/",
-          tempo_toc[i, 2]
+          tempo_toc[i, 2], lang
         ))
       lu_content <- readBin(lu_response$content, what = "text")
       lu_content <- fromJSON(lu_content, flatten = TRUE)
