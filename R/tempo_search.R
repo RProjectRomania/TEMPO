@@ -1,27 +1,39 @@
-# TODO 
-# return matrices
-# add roxygen comments
+#' @title Get TOC for Tempo Online database filtered by keyword
+#'
+#' @description tempo_search
+#' The function searches for datasets codes in TOC based on specified keywords, 
+#' to be used with tempo_bulk function. 
+#' 
+#' @param keyword - a character vector with multiple keywords to be matched 
+#'
+#' @param language - a string to set the language for the downloaded
+#' tables. Options: "ro" - for Romanian and "en" - for English. If no parameter
+#' is given, implicitly downloads tables in Romanian
+#' 
+#' @return Returns a dataframe object. 
+#' 
+#' @details Downloads Table Of Contents (TOC) for Tempo Online database  
+#' and returns a TOC subset based on specified keywords.
+#' E.g. all TOC entries related to education.
+#' 
+#' @examples \dontrun{
+#' 
+#' tempo_search(c("education", "industry"), language = "en")
+#' 
+#' }
+#' @import curl
+#' @import jsonlite
+#' @export
 
+
+#TODO
+#add the language parameter for tempo_toc function
 tempo_search <- function(keyword = c(), language = c("ro", "en")){
-  url_get_domain <- "http://statistici.insse.ro:8077/tempo-ins/context/" 
+  toc <- tempo_toc(full_description = TRUE)
+  vchar <- apply(toc, 1 ,paste, collapse = " ")
+  matched <- sapply(tolower(keyword), grep, tolower(vchar))
+  index <- sort(unlist(matched))
   
-  if (language[1] == "en") {
-    url_get_domain <- "http://statistici.insse.ro:8077/tempo-ins/context/?lang=en/" 
-  }
-  
-  results <- curl_fetch_memory(url_get_domain)
-  parsed_url <- readBin(results$content, what = "character")
-  parsed_list <- fromJSON(parsed_url, flatten = TRUE, simplifyDataFrame = TRUE)
-  
-  context.name.mod <- sub(".+? ", "", parsed_list$context.name)
-  matched <- match(tolower(context.name.mod), tolower(keyword))
-  pos <- which(!is.na(matched))
-  df <- parsed_list[pos,]
-  return(df)
+  return(toc[index,])
 }
-
-# Examples
-tempo_search(c("education"), language = "en")
-tempo_search(c("educatie"), language = "ro")
-tempo_search(c("educatie", "industrie"))
 
