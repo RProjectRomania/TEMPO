@@ -21,7 +21,7 @@
 #' @export
 
 # TODO 
-# abbreviations for the names of macroregions, regions and counties. 
+# particular cases Bistrita-Nasaud(B-), Caras-Severin(C-)
 
 tempo_geo_codes <- function(language = c("ro", "en")) {
   lang <- ""
@@ -35,6 +35,7 @@ tempo_geo_codes <- function(language = c("ro", "en")) {
   tempo_toc <- fromJSON(responsetext, flatten = TRUE)
   codes <- tempo_toc$dimensionsMap$options[[4]][1:2]
   names(codes) <- c("name", "code")
+  codes$geoCodes <- toupper(abbreviate(t$name, minlength = 2))
   
   return(codes)
 }
