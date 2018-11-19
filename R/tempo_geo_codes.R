@@ -35,10 +35,40 @@ tempo_geo_codes <- function(language = c("ro", "en")) {
   tempo_toc <- fromJSON(responsetext, flatten = TRUE)
   codes <- tempo_toc$dimensionsMap$options[[4]][1:2]
   names(codes) <- c("name", "code")
-  codes$geoCodes <- toupper(abbreviate(t$name, minlength = 2))
+  codes$geoCodes <- toupper(abbreviate(codes$name, minlength = 2))
   
   return(codes)
 }
+
+#judete + Bucuresti
+tempo_geo_nuts3 <- function() {
+  
+}
+
+#regiuni (8)
+tempo_geo_nuts2 <- function(language = c("ro", "en")) {
+  
+}
+
+#macroregiuni (4)
+tempo_geo_nuts1 <- function(language = "ro") {
+  
+  if(language != "ro" && language != "en")
+    stop("unsupported language")
+  
+  
+  std_names <- c("RO1", "RO2", "RO3", "RO4")
+  if(language == "ro")
+    tempo_names <- c("MACROREGIUNEA UNU", "MACROREGIUNEA DOI", "MACROREGIUNEA TREI", "MACROREGIUNEA PATRU")
+  else
+    tempo_names <- c("MACROREGION 1", "MACROREGION 2", "MACROREGION 3", "MACROREGION 4")
+  
+  tempo_codes <- c(21295, 20676, 20677, 20678)
+  codes <- data.frame(std_names = std_names, tempo_names = tempo_names, tempo_codes = tempo_codes)
+  return (codes)
+  
+}
+
 
 
 
