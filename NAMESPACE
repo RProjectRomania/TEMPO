@@ -2,7 +2,6 @@
 
 export(tempo_bulk)
 export(tempo_clean)
-export(tempo_geo_codes)
 export(tempo_last_up)
 export(tempo_search)
 export(tempo_toc)
