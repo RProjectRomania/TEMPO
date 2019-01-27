@@ -1,46 +1,55 @@
 
-# Metoda 1 - folosind pachetul sf si functia plot
-library(sf)
 
-# Testare pe matricea AGR111A - Suprafata viilor pe rod, pe forme de proprietate, macroregiuni, regiuni de dezvoltare si judete
-tempo_bulk("AGR111A")
-df <- read.csv("AGR111A.csv")  
+# library(rgdal)
+# library(ggplot2)
 
-df$Ani <- as.character(df$Ani)
-df$Macroregiuni..regiuni.de.dezvoltare.si.judete <- as.character(df$Macroregiuni..regiuni.de.dezvoltare.si.judete)
-df$Categorii.de.vii <- as.character(df$Categorii.de.vii)
-df$Forme.de.proprietate <- as.character(df$Forme.de.proprietate)
+tempo_geo <- function(matrix){
+  load("data/shapefile.rda")
+  
+  shapefile@data$id <- rownames(shapefile@data)
+  sf_df <- fortify(shapefile, region = "id") # convert from sf object in dataframe object
+  df_long_lat <- merge(sf_df, shapefile@data, by = "id")
+  df_long_lat <- df_long_lat[,c(2,3,8,9,10,11,12,13)]
+  df_long_lat$long <- df_long_lat$long/10000
+  df_long_lat$lat <- df_long_lat$lat/10000
+  
+  cnames <- aggregate(cbind(long, lat) ~ mnemonic, data=df_long_lat, FUN=mean)
+  
+  col <- names(matrix)
+  idx <- grep("judete", col)
+  
+  if(lenght(idx) > 0){
+    matrix$jud <- matrix[,idx[1]]
+    matrix <- matrix[,-idx[1]]
+  }
+  
+  title <- ""
+  for(i in 1:(ncol(matrix)-2)){
+    lvs <- levels(matrix[,i])
+    if(length(lvs)>1){
+      lv <- lvs[2]
+      title <- paste(title, lv)
+      matrix <- subset(matrix, matrix[,i] == lv)
+    }
+  }
+  
+  reg <- grep("regiunea", tolower(matrix$jud))
+  matrix <- matrix[-reg, ]
+  df_long_lat$name <- stri_trim(as.character(df_long_lat$name))
+  matrix$jud <- stri_trim(as.character(matrix$jud))
+  join <- left_join(df_long_lat, matrix[,c(5,6)], by = c("name" = "jud"))
+  
+  plot <- ggplot(join) +  
+    theme_bw() + 
+    geom_polygon(aes(long, lat, group=mnemonic, fill=join$Valoare)) +
+    geom_text(data=cnames, aes(long, lat, label=mnemonic), size=4, vjust=0) +
+    scale_fill_gradient(low='white', high='red')+
+    ggtitle(title) +
+    labs(fill="Valoare")
+  
+  return(plot)
+}
 
-df <- subset(df, df$Categorii.de.vii == "Total- vii pe rod" & Ani == " Anul 2017" & df$Forme.de.proprietate == " Total")
-
-pos_regiuni <- grep("MACROREGIUNEA ", df$Macroregiuni..regiuni.de.dezvoltare.si.judete)
-df <- df[pos_regiuni,]
-
-load("C:/Users/ana.tiru/Desktop/New folder/TEMPO/data/tempo_geo_codes_shp.rda")
-
-df$geo <- tempo_geo_codes_shp$codes_macroregions_ro$geometry
-df <- st_as_sf(df) # convert to an sf object
-
-# Pe macroregiuni
-plot(df[,6])
-
-
-# Metoda 2 - folosind pachetul rgdal si functia ggplot
-library(rgdal)
-library(ggplot2)
-
-load("C:/Users/ana.tiru/Desktop/New folder/TEMPO/data/shapefile.rda")
-
-shapefile@data$id <- rownames(shapefile@data)
-sf_df <- fortify(shapefile, region = "id") # convert from sf object in dataframe object
-df_long_lat <- merge(sf_df, shapefile@data, by = "id")
-
-# Pe judete
-ggplot(df_long_lat) + 
-  aes(long,lat,group=group,fill=countyMn) + 
-  geom_polygon() 
-# Pe regiuni
-ggplot(df_long_lat) + 
-  aes(long,lat,group=group,fill=region) + 
-  geom_polygon() 
-
+# Testare
+# matrix = read.csv("AGR111A.csv")
+# tempo_geo(matrix)
