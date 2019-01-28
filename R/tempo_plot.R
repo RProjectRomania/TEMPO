@@ -1,7 +1,8 @@
 
-
 # library(rgdal)
 # library(ggplot2)
+# library(stringi)
+# library(dplyr)
 
 tempo_geo <- function(matrix){
   load("data/shapefile.rda")
@@ -18,7 +19,7 @@ tempo_geo <- function(matrix){
   col <- names(matrix)
   idx <- grep("judete", col)
   
-  if(lenght(idx) > 0){
+  if(length(idx) > 0){
     matrix$jud <- matrix[,idx[1]]
     matrix <- matrix[,-idx[1]]
   }
@@ -51,5 +52,6 @@ tempo_geo <- function(matrix){
 }
 
 # Testare
+# tempo_bulk("AGR111A")
 # matrix = read.csv("AGR111A.csv")
 # tempo_geo(matrix)
