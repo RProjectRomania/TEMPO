@@ -45,7 +45,7 @@ tempo_geo <- function(matrix, year, area) {
   pos_column_val <- grep("(valoare)", tolower(column_names))
   pos_column_loc <- which(names(matrix)=="Localitati")
   
-  #load("data/df_coordinates.rda")
+  load("data/df_coordinates.rda")
   
   if(area == "counties") {
     if(length(pos_column_jud)==0) {
@@ -55,7 +55,6 @@ tempo_geo <- function(matrix, year, area) {
     if(length(pos_column_loc)>0){
       matrix <- subset(matrix, trimws(as.character(matrix[,pos_column_loc]))=="TOTAL")
     }
-    print(nrow(matrix))
     rows_to_remove <- grep("(regiunea|macroregiunea|total)", tolower(matrix[,pos_column_jud]))
     matrix <- matrix[-rows_to_remove,]
     label <- aggregate(cbind(long, lat) ~ mnemonic, data=df_coordinates, FUN=function(x)mean(range(x)))
