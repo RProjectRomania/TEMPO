@@ -13,6 +13,8 @@ Depends:
     curl,
     jsonlite,
     utils,
+    dplyr,
+    ggplot2
     R (>= 3.3.0)
 Encoding: UTF-8
 LazyData: true
