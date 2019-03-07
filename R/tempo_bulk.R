@@ -11,9 +11,6 @@
 #' the table/matrix in TEMPO Online database. See more on
 #' how to obtain a matrix code from \code{\link{tempo_toc}}
 #'
-#' @param language - a string to set the language for the downloaded
-#' tables. Options: "ro" - for Romanian and "en" - for English. If no parameter
-#' is given, implicitly downloads tables in Romanian
 #' 
 #' @param directory - a valid path where the files will be downloaded. The implicit value 
 #' is NULL, i.e. current working directory.
