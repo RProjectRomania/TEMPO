@@ -19,9 +19,9 @@ tempo_download <- function(payload_list = NULL){
     
     res <- readBin(req$content, "text")
     
-    res <- read.csv2(text = res, sep = ",", stringsAsFactors = FALSE)
+    res <- utils::read.csv2(text = res, sep = ",", stringsAsFactors = FALSE)
     
-    write.csv(res, con, sep = "," ,append = TRUE)
+    utils::write.csv(res, con, sep = "," ,append = TRUE)
     
     close(con)
   }
