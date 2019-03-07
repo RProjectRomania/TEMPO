@@ -33,7 +33,7 @@
 #' @export
 
 
-tempo_bulk <- function(codes = list(), directory =  NULL){
+tempo_bulk <- function(codes = list(), directory =  NULL, check_date = FALSE){
   
   stopifnot(!is.null(codes)) 
   
@@ -56,9 +56,11 @@ tempo_bulk <- function(codes = list(), directory =  NULL){
                 directory <-  gsub("\\", "/", directory)
                })
     }
-  }
   setwd(directory)
+  }
   # Check date for files on disk
+  if(check_date){
+    
   tempo_files <- list.files(directory, pattern = "[[:alnum:]].csv")
   
   message("File on disk | Date on disk (modified) | Date on TEMPO ")
@@ -76,7 +78,9 @@ tempo_bulk <- function(codes = list(), directory =  NULL){
   
   if(length(codes) == 0){
     stop("Requested files are up to date.")
+  }
   } else {
+  
   message("The following matrices will be downloaded: ")
     print(codes)
   }
@@ -92,5 +96,5 @@ lapply(codes, function(x){
 get_last_date <- function(i)
 { 
   lastDate <- tempo_toc(fullDescription = TRUE)
-  return(lastDate$ultimaActualizare)
+  return(lastDate[[6]])
 }
