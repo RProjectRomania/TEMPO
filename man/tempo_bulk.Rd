@@ -4,19 +4,19 @@
 \alias{tempo_bulk}
 \title{Download one or multiple tables from TEMPO Online database}
 \usage{
-tempo_bulk(codes = list(), language = NULL, directory = NULL)
+tempo_bulk(codes = list(), directory = NULL)
 }
 \arguments{
 \item{codes}{- a list containing one or more strings containing the code for
 the table/matrix in TEMPO Online database. See more on
 how to obtain a matrix code from \code{\link{tempo_toc}}}
 
+\item{directory}{- a valid path where the files will be downloaded. The implicit value 
+is NULL, i.e. current working directory.}
+
 \item{language}{- a string to set the language for the downloaded
 tables. Options: "ro" - for Romanian and "en" - for English. If no parameter
 is given, implicitly downloads tables in Romanian}
-
-\item{directory}{- a valid path where the files will be downloaded. The implicit value 
-is NULL, i.e. current working directory.}
 }
 \description{
 tempo_bulk

@@ -33,20 +33,14 @@
 #' @export
 
 
-tempo_bulk <- function(codes = list(), language = NULL, directory =  NULL){
+tempo_bulk <- function(codes = list(), directory =  NULL){
   
   stopifnot(!is.null(codes)) 
   
-  if(is.null(language)){
-    
-    language <- "ro"
-    message("Data is downloaded in Romanian language.")
-  
-  }
   
   if(is.null(directory)){
     
-    message("No directory has been supplied. \nData will be downloaded in the current working directory")
+    message("No directory has been supplied. \nData will be downloaded in the curent working directory")
     directory <- paste0(getwd(), "/")
     
   } else {
@@ -63,7 +57,7 @@ tempo_bulk <- function(codes = list(), language = NULL, directory =  NULL){
                })
     }
   }
-
+  setwd(directory)
   # Check date for files on disk
   tempo_files <- list.files(directory, pattern = "[[:alnum:]].csv")
   
@@ -79,25 +73,24 @@ tempo_bulk <- function(codes = list(), language = NULL, directory =  NULL){
       codes <- codes[codes != j]
     }
   }
+  
   if(length(codes) == 0){
     stop("Requested files are up to date.")
   } else {
   message("The following matrices will be downloaded: ")
     print(codes)
   }
-  
-  payloads2 <- tempo_payloads(matrices = codes, language =  language)
-  
-  tempo_download(payloads = payloads2, path = directory)
+
+lapply(codes, function(x){
+      tempoData <- tempo_options(x)
+      tempoData <- tempo_payloads(tempoData)
+      tempo_download(tempoData)
+    })
 
 }
 
 get_last_date <- function(i)
 { 
-  url_get_matrix <- "http://statistici.insse.ro:8077/tempo-ins/matrix/"
-  url_tempo <- paste0(url_get_matrix, i)
-  results <- curl_fetch_memory(url_tempo)
-  parsed_url <- readBin(results$content, "text")
-  parsed_list <- jsonlite::fromJSON(parsed_url)
-  return(parsed_list$ultimaActualizare)
+  lastDate <- tempo_toc(fullDescription)
+  return(lastDate$ultimaActualizare)
 }

@@ -17,14 +17,14 @@
 #' E.g. all TOC entries related to education.
 #' 
 #' @examples \dontrun{
-#' tempo_search(c("education", "industry"), language = "en")
+#' tempo_search(c("education", "industry"))
 #' }
 #' @import curl
 #' @import jsonlite
 #' @export
 
-tempo_search <- function(keyword = c(), language = c("ro", "en")){
-  toc <- tempo_toc(full_description = TRUE, language = language)
+tempo_search <- function(keyword = c()){
+  toc <- tempo_toc(full_description = TRUE, language = tempoEnv$language)
   vchar <- apply(toc, 1 ,paste, collapse = " ")
   matched <- sapply(tolower(keyword), grep, tolower(vchar))
   index <- sort(unlist(matched))

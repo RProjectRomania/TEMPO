@@ -4,7 +4,7 @@
 \alias{tempo_search}
 \title{Get TOC for Tempo Online database filtered by keyword}
 \usage{
-tempo_search(keyword = c(), language = c("ro", "en"))
+tempo_search(keyword = c())
 }
 \arguments{
 \item{keyword}{Character vector with multiple keywords to be matched.}
@@ -27,6 +27,6 @@ E.g. all TOC entries related to education.
 }
 \examples{
 \dontrun{
-tempo_search(c("education", "industry"), language = "en")
+tempo_search(c("education", "industry"))
 }
 }

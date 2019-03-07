@@ -11,7 +11,7 @@ tempo_geo_codes
 \description{
 This dataset provides the codes from the NUTS classification system, the full names and 
 the codes used for retrieving data from TEMPO Online database service, for all 
-macroregions, regions and counties from Romania. For macroregions and regions there
-are dataframes with names in English.
+macroregions, regions and counties from Romania. For macroregions and regions the package
+provides dataframes with names in English.
 }
 \keyword{datasets}

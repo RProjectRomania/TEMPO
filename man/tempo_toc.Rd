@@ -4,11 +4,11 @@
 \alias{tempo_toc}
 \title{tempo_toc}
 \usage{
-tempo_toc(full_description = FALSE, language = c("ro", "en"))
+tempo_toc(fullDescription = FALSE)
 }
 \arguments{
 \item{full_description}{- implicitly set as false
-if fulldescription == TRUE then starts collecting dates for last updates}
+if fullDescription == TRUE then starts collecting dates for last updates}
 }
 \value{
 Returns a dataframe object.
@@ -16,13 +16,13 @@ Returns a dataframe object.
 \description{
 Get TOC for Tempo Online
 function gets a parameter full_description implicitly false 
-if fulldescription == TRUE then starts collecting dates for last updates
+if fullDescription == TRUE then starts collecting dates for last updates
 }
 \details{
 This functions sends one or multiple GET requests and parses the content into 
 a dataframe
 }
 \examples{
-tempo_toc(full_description = FALSE)
+tempo_toc(fullDescription = FALSE)
 
 }

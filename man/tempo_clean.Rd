@@ -4,15 +4,11 @@
 \alias{tempo_clean}
 \title{Clean a table downloaded from TEMPO Online database}
 \usage{
-tempo_clean(matrix, matrix_code)
+tempo_clean(matrix)
 }
 \arguments{
 \item{matrix}{- the R dataframe object to be cleaned, representing 
 the table/matrix downloaded from TEMPO Online database}
-
-\item{matrix_code}{- string containing the code for 
-the table/matrix in TEMPO Online database. See more on
-how to obtain a matrix code from \code{\link{tempo_codes}}}
 }
 \value{
 Returns a R dataframe object.
