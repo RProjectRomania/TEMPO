@@ -1,6 +1,6 @@
 #' @title Visualize Geospatial Data
 #' 
-#' @description tempo_plot creates a map for visualize Geospatial Data 
+#' @description tempo_geo creates a map for visualize Geospatial Data 
 #' downloaded from TEMPO Online database
 #' 
 #' @param matrix - the table/matrix downloaded from TEMPO Online database

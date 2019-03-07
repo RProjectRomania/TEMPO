@@ -4,9 +4,14 @@ export(get_language)
 export(set_language)
 export(tempo_bulk)
 export(tempo_clean)
+<<<<<<< HEAD
 export(tempo_filter)
 export(tempo_geo)
 export(tempo_options)
+=======
+export(tempo_geo)
+export(tempo_last_up)
+>>>>>>> 04f95da92833b18912c533a830431c08da76f7b3
 export(tempo_search)
 export(tempo_toc)
 export(tempotime2date)
