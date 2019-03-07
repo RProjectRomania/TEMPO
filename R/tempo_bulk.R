@@ -91,6 +91,6 @@ lapply(codes, function(x){
 
 get_last_date <- function(i)
 { 
-  lastDate <- tempo_toc(fullDescription)
+  lastDate <- tempo_toc(fullDescription = TRUE)
   return(lastDate$ultimaActualizare)
 }
