@@ -33,7 +33,7 @@
 #' @export
 
 
-tempo_bulk <- function(codes = list(), directory =  NULL, check_date = FALSE){
+tempo_bulk <- function(codes = NULL, directory =  NULL, check_date = FALSE){
   
   stopifnot(!is.null(codes)) 
   
@@ -65,27 +65,27 @@ tempo_bulk <- function(codes = list(), directory =  NULL, check_date = FALSE){
   
   message("File on disk | Date on disk (modified) | Date on TEMPO ")
   
-  for(i in tempo_files){
-  j <- gsub("\\.csv", "",i) 
-  time_on_tempo <- get_last_date(j)
-  time_on_tempo <- as.POSIXct.Date(as.Date(time_on_tempo, format = "%d-%m-%Y"))
-  time_on_disk <- file.info(i)[4][[1]]
-  message(paste0(i, "  | " , time_on_disk, "   | ", time_on_tempo))
-    if( time_on_tempo  < time_on_disk){
-      codes <- codes[codes != j]
+    for(i in tempo_files){
+    j <- gsub("\\.csv", "",i) 
+    time_on_tempo <- get_last_date(j)
+    time_on_tempo <- as.POSIXct.Date(as.Date(time_on_tempo, format = "%d-%m-%Y"))
+    time_on_disk <- file.info(i)[4][[1]]
+    message(paste0(i, "  | " , time_on_disk, "   | ", time_on_tempo))
+      if( time_on_tempo  < time_on_disk){
+        codes <- codes[codes != j]
+      }
     }
-  }
   
-  if(length(codes) == 0){
-    stop("Requested files are up to date.")
-  }
+    if(length(codes) == 0){
+      stop("Requested files are up to date.")
+    }
   } else {
   
   message("The following matrices will be downloaded: ")
     print(codes)
   }
 
-lapply(codes, function(x){
+    lapply(codes, function(x){
       tempoData <- tempo_options(x)
       tempoData <- tempo_payloads(tempoData)
       tempo_download(tempoData)
