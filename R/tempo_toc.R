@@ -4,7 +4,7 @@
 #' function gets a parameter full_description implicitly false 
 #' if fullDescription == TRUE then starts collecting dates for last updates 
 #' 
-#' @param full_description - implicitly set as false  
+#' @param fullDescription - implicitly set as false  
 #' if fullDescription == TRUE then starts collecting dates for last updates
 #' 
 #' @return Returns a dataframe object. 
@@ -18,7 +18,6 @@
 #' 
 #' @import curl
 #' @import jsonlite
-#' @import utils 
 #' @export
 
 tempo_toc <- function(fullDescription = FALSE){
