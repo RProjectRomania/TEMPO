@@ -26,6 +26,9 @@ tempo_download <- function(payload_list = NULL){
     close(con)
   }
   
+  failure <- function(e){
+    print("Something happend", e)
+  }
   
   for(i  in seq_along(payload_list)){
     
@@ -37,7 +40,7 @@ tempo_download <- function(payload_list = NULL){
     
     handle_setopt(h2,  postfields = payload)
     
-    curl_fetch_multi(url_csv, done = succes2,  handle =  h2, pool = my_pool)
+    curl_fetch_multi(url_csv, done = succes2, fail = failure, handle =  h2, pool = my_pool)
     
     
   }
