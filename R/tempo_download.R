@@ -4,26 +4,22 @@ tempo_download <- function(payload_list = NULL){
   
   my_pool <- new_pool()
   
-  
+  my_data <- data.frame()
+  fn <- 
   succes2 <- function(req){
     
-    fn <- parse_headers(req$headers)
+    fn <- parse_headers(req$headers)[3]
     
-    fn <- fn[3]
+    fn <- strsplit(fn, split = "_")
     
-    fn2 <- strsplit(fn, split = "_")
-    
-    fn2 <- fn2[[1]][2]
-    
-    con <- file(fn2, open = "wb")
+    fn <<- fn2[[1]][2]
     
     res <- readBin(req$content, "text")
     
-    res <- utils::read.csv2(text = res, sep = ",", stringsAsFactors = FALSE)
+    res <- utils::read.csv2(text = res, header = TRUE ,sep = ",",stringsAsFactors = FALSE)
     
-    utils::write.csv(res, con, sep = "," ,append = TRUE)
+    my_data <<- cbind(my_data, res)
     
-    close(con)
   }
   
   failure <- function(e){
@@ -44,9 +40,8 @@ tempo_download <- function(payload_list = NULL){
     
     
   }
-  
-  
-  multi_run(pool = my_pool)   
+  multi_run(pool = my_pool)
+  write.csv(my_data, paste0(fn, ".csv"), sep = ",", row.names = FALSE)
 }
 
 
