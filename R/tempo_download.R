@@ -5,7 +5,7 @@ tempo_download <- function(payload_list = NULL){
   my_pool <- new_pool()
   
   my_data <- data.frame()
-  fn <- 
+  fn <- NULL
   succes2 <- function(req){
     
     fn <- parse_headers(req$headers)[3]
