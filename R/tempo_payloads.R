@@ -2,7 +2,7 @@ tempo_payloads <- function(tempo_matrix_opts = NULL){
   
   stopifnot(is.list(tempo_matrix_opts) & length(tempo_matrix_opts) == 2)
   
-  cutoff <- 200
+  cutoff <- 180
   
   z <- lapply(tempo_matrix_opts[[1]], function(y){
     if(length(y) < cutoff){
