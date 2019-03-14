@@ -24,7 +24,7 @@
 #' @export
 
 tempo_search <- function(keyword = c()){
-  toc <- tempo_toc(full_description = TRUE, language = tempoEnv$language)
+  toc <- tempo_toc(full_description = TRUE)
   vchar <- apply(toc, 1 ,paste, collapse = " ")
   matched <- sapply(tolower(keyword), grep, tolower(vchar))
   index <- sort(unlist(matched))
