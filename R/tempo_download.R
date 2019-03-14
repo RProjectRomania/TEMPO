@@ -12,13 +12,13 @@ tempo_download <- function(payload_list = NULL){
     
     fn <- strsplit(fn, split = "_")
     
-    fn <<- fn2[[1]][2]
+    fn <<- fn[[1]][2]
     
     res <- readBin(req$content, "text")
     
     res <- utils::read.csv2(text = res, header = TRUE ,sep = ",",stringsAsFactors = FALSE)
     
-    my_data <<- cbind(my_data, res)
+    my_data <<- rbind(my_data, res)
     
   }
   
