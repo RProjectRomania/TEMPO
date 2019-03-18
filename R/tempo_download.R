@@ -41,7 +41,7 @@ tempo_download <- function(payload_list = NULL){
     
   }
   multi_run(pool = my_pool)
-  write.csv(my_data, paste0(fn, ".csv"), sep = ",", row.names = FALSE)
+  write.csv(my_data, paste0(fn), sep = ",", row.names = FALSE)
 }
 
 
