@@ -2,33 +2,34 @@ tempo_download <- function(payload_list = NULL){
   
   url_csv <- tempoEnv$dataCsv
   
-  my_pool <- new_pool()
+#  my_pool <- new_pool()
   
   my_data <- data.frame()
+  
   fn <- NULL
-  succes2 <- function(req){
+#  succes2 <- function(req){
     
-    fn <- parse_headers(req$headers)[3]
+#    fn <- parse_headers(req$headers)[3]
     
-    fn <- strsplit(fn, split = "_")
+#    fn <- strsplit(fn, split = "_")
     
-    fn <<- fn[[1]][2]
+#    fn <- fn[[1]][2]
+#    
+ #   res <- readBin(req$content, "text")
+#    
+#    res <- utils::read.csv2(text = res, header = TRUE ,sep = ",",stringsAsFactors = FALSE)
     
-    res <- readBin(req$content, "text")
+#    my_data <- rbind(my_data, res)
     
-    res <- utils::read.csv2(text = res, header = TRUE ,sep = ",",stringsAsFactors = FALSE)
-    
-    my_data <<- rbind(my_data, res)
-    
-  }
+#  }
   
-  failure <- function(e){
-    print("Something happend", e)
-  }
+#  failure <- function(e){
+#    print("Something happend", e)
+ # }
   
-  for(i  in seq_along(payload_list)){
+  for (i  in payload_list) {
     
-    payload <- toJSON(payload_list[[i]], pretty = TRUE, auto_unbox = TRUE, null = "null") 
+    payload <- toJSON(i, pretty = TRUE, auto_unbox = TRUE, null = "null") 
     
     h2 <- new_handle()
     
@@ -36,11 +37,29 @@ tempo_download <- function(payload_list = NULL){
     
     handle_setopt(h2,  postfields = payload)
     
-    curl_fetch_multi(url_csv, done = succes2, fail = failure, handle =  h2, pool = my_pool)
+    req <- curl_fetch_memory(url_csv, handle =  h2)
+    
+    h2 <- NULL
+    
+    if (is.null(fn)) {
+      
+    fn <- parse_headers(req$headers)[3]
+    
+    fn <- strsplit(fn, split = "_")
+    
+    fn <- fn[[1]][2]
+    
+    }
+    
+    res <- readBin(req$content, "text")
+    
+    res <- utils::read.csv2(text = res, header = TRUE ,sep = ",",stringsAsFactors = FALSE)
+    
+    my_data <- rbind(my_data, res)
     
     
   }
-  multi_run(pool = my_pool)
+#  multi_run(pool = my_pool)
   write.csv(my_data, paste0(fn), sep = ",", row.names = FALSE)
 }
 
