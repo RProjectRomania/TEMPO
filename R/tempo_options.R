@@ -56,6 +56,7 @@ tempo_options <- function(code = NULL){
       tempo_matrix[[i]][,3] <- NULL    
     }
   }
+  
   tempo_matrix <- lapply(tempo_matrix, function(x){
     y <- x[,2]
     names(y) <- x[,1]
