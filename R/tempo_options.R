@@ -41,19 +41,27 @@ tempo_options <- function(code = NULL){
   
   tempo_matrix <- lapply(tempo_matrix, "[", -3)
   tempo_matrix <- lapply(tempo_matrix, function(x) x[,colSums(is.na(x)) < nrow(x)])
-  
+ 
   for(i in order(seq_along(tempo_matrix), decreasing = TRUE)){
+
+# If number of columns is 3 then merge the two dataframes
+# After merge, replace the columns in the initial dataframes
+# by addressing the directly the column indices
+    
     if(length(tempo_matrix[[i]]) == 3){
-      
-      tempo_matrix[[i-1]] <- merge(tempo_matrix[[i]], tempo_matrix[[i-1]], by.x = 3, by.y = 2)[,c(4, 1)]
-      tempo_matrix[[i]][,c(3,4)]<- NULL    
-      
+      merged_tmp <- merge(tempo_matrix[[i]], tempo_matrix[[i-1]], by.x = 3, by.y = 2)
+      tempo_matrix[[i-1]] <- merged_tmp[,-c(2,3)]
+      tempo_matrix[[i-1]][,c(1,2)] <- tempo_matrix[[i-1]][,c(2,1)]
+      tempo_matrix[[i]][,c(1,2)] <- merged_tmp[,c(2,3)]
+      tempo_matrix[[i]][,3] <- NULL    
     }
   }
   tempo_matrix <- lapply(tempo_matrix, function(x){
     y <- x[,2]
-    setNames(y, x[,1])})
-  tempo_matrix_opts       <- list()
+    names(y) <- x[,1]
+    return(y)
+    })
+  tempo_matrix_opts   <- list()
   tempo_matrix_opts$opts  <- tempo_matrix
   tempo_matrix_opts$codes <- matrix_codes
   
