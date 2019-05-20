@@ -21,6 +21,6 @@ TEMPO Online database
 This function removes redundant columns or redundant information from columns
 }
 \examples{
-tempo_clean(SOM101D, "SOM101D")
+tempo_clean(SOM101D)
 
 }
