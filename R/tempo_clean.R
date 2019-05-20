@@ -11,30 +11,27 @@
 #' @details This function removes redundant columns or redundant information from columns
 #' 
 #' @examples 
-#' tempo_clean(SOM101D, "SOM101D")
+#' tempo_clean(SOM101D)
 #' 
 #' @export
 tempo_clean <- function(matrix){
   if (nargs() != 1) {
-    print("Wrong number of arguments!")
-    return (NULL)
+    stop("Wrong number of arguments!")
   }
   
   tmp <- deparse(substitute(matrix))
   if (!exists(tmp)) {
-    cat("Matrix not found:", tmp, "\n")
-    return (NULL)
+    stop("Matrix not found:", tmp, "\n")
   }
   
   if (is.null(matrix) | !is.data.frame(matrix)) {
     type <- class(matrix)
-    cat("Invalid type (",type, ") of argument!\n", sep = "")
-    return (NULL)
+    stop("Invalid type (",type, ") of argument!\n", sep = "")
   }
   
   column_names <- names(matrix)
   #pos_ani <- grep("([aA]ni|[yY]ears)", column_names, fixed = TRUE) #Ani, Years
-  pos_ani <- which(names(matrix)=="Ani" | names(matrix) == "Year")
+  pos_ani <- which(names(matrix)=="Ani" | names(matrix) == "Years")
   pos_um <- grep("(UM|MU|masura)", column_names)
   
   if (length(pos_ani) > 0) {
