@@ -7,10 +7,6 @@
 #' @param matrix - the R dataframe object with time information
 #' in TEMPO time format, representing the table/matrix 
 #' downloaded from TEMPO Online database.
-#' 
-#' @param matrix_code - string containing the code for 
-#' the table/matrix in TEMPO Online database. See more on
-#' how to obtain a matrix code from \code{\link{tempo_codes}}
 #'
 #' @return Returns a R dataframe object. 
 
@@ -23,36 +19,26 @@
 #' 
 #' @export
 
-tempotime2date <- function(matrix, matrix_code){
+tempotime2date <- function(matrix){
   if (nargs() != 2) {
-    print("Wrong number of arguments!")
-    return (NULL)
+    stop("Wrong number of arguments!")
   }
   
   tmp <- deparse(substitute(matrix))
   if (!exists(tmp)) {
-    cat("Matrix not found:", tmp, "\n")
-    return (NULL)
+    stop("Matrix not found:", tmp, "\n")
   }
   
   if (is.null(matrix) | !is.data.frame(matrix)) {
     type <- class(matrix)
-    cat("Invalid type (",type, ") of argument!\n", sep = "")
-    return (NULL)
-  }
-  
-  if (is.null(matrix_code) | !is.character(matrix_code)) {
-    type <- class(matrix_code)
-    cat("Invalid type (",type, ") of argument!\n", sep = "")
-    return (NULL)
+    stop("Invalid type (",type, ") of argument!\n", sep = "")
   }
   
   column_names <- names(matrix)
-  hasDate <- grep("([lL]uni|[mM]onths|[tT]rimestre|[qQ]uarters)", column_names)
+  hasDate <- grep("([lL]uni|[mM]onths|[tT]rimestre|[qQ]uarters|[pP]erioade|[pP]eriods)", column_names)
   
   if (length(hasDate) == 0) {
-    cat("No column of TEMPO time format!\n")
-    return (NULL)
+    stop("No column of TEMPO time format!\n")
   }
   
   pos <- hasDate[1]
@@ -62,7 +48,7 @@ tempotime2date <- function(matrix, matrix_code){
   years <- gsub("[[:alpha:]]", "", date)
   years <- substring(years, 3, 4)
   months <- gsub("[[:digit:]]+", "", date)
-
+  
   if (keyWord == "trimestre" || keyWord == "quarters") {
     months <- gsub("(trimestrul|quarter)", "", months)
     map <- c("i" = "01", "ii" = "04", "iii" = "07", "iv" = "10")
@@ -86,9 +72,14 @@ tempotime2date <- function(matrix, matrix_code){
     months <- map[months]
   }
   
+  if (keyWord == "perioade" | keyWord == "periods") {
+    months <- gsub("(trimestrul|quarter)", "", months)
+    map <- c("i" = "01", "ii" = "04", "iii" = "07", "iv" = "10", "anul" = "12", "year" = "12")
+    months <- map[months]
+  }
+  
   if (sum(is.na(months)) > 0) {
-    cat("No column of TEMPO time format!\n")
-    return (NULL)
+    stop("No column of TEMPO time format!\n")
   }
   
   date <- paste("01", months, years, sep = "-")
