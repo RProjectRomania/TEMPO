@@ -4,16 +4,12 @@
 \alias{tempotime2date}
 \title{Date Conversion from TEMPO Time Format}
 \usage{
-tempotime2date(matrix, matrix_code)
+tempotime2date(matrix)
 }
 \arguments{
 \item{matrix}{- the R dataframe object with time information
 in TEMPO time format, representing the table/matrix 
 downloaded from TEMPO Online database.}
-
-\item{matrix_code}{- string containing the code for 
-the table/matrix in TEMPO Online database. See more on
-how to obtain a matrix code from \code{\link{tempo_codes}}}
 }
 \value{
 Returns a R dataframe object.
