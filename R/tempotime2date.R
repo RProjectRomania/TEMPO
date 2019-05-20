@@ -15,12 +15,12 @@
 #' of class \code{\link{Date}} representing calendar dates. 
 #' 
 #' @examples 
-#' tempotime2date(AMG157G, "AMG157G")
+#' tempotime2date(AMG157G)
 #' 
 #' @export
 
 tempotime2date <- function(matrix){
-  if (nargs() != 2) {
+  if (nargs() != 1) {
     stop("Wrong number of arguments!")
   }
   
