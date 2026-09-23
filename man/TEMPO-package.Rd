@@ -2,32 +2,29 @@
 % Please edit documentation in R/TEMPO-package.R
 \docType{package}
 \name{TEMPO-package}
-\alias{TEMPO-package}
 \alias{TEMPO}
-\title{R Tools for NSI Romania Open data}
+\alias{TEMPO-package}
+\title{TEMPO: Access Romanian National Institute of Statistics Data}
 \description{
-Brief summary of the TEMPO package
+List and download tables from the Romanian National Institute of Statistics
+TEMPO Online database.
 }
-\details{
-\tabular{ll}{
-Package: \tab TEMPO\cr
-Type: \tab Package\cr
-Version: \tab See sessionInfo() or DESCRIPTION file\cr
-Date: \tab 2018\cr
-License: \tab GPL3 + EUPL LICENSE\cr
-LazyLoad: \tab yes\cr
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/RProjectRomania/TEMPO}
+  \item Report bugs at \url{https://github.com/RProjectRomania/TEMPO/issues}
 }
 
-R Tools for NSI Romania Open data
-}
-\examples{
-library(TEMPO)
-}
-\references{
-See citation("TEMPO")
-\url{https://github.com/RProjectRomania/TEMPO.git}
 }
 \author{
-Marian Necula, Bogdan Oancea, Ana Maria Tiru \email{marian.necula00@gmail.com} \url{https://github.com/RProjectRomania/TEMPO.git}
+\strong{Maintainer}: Marian Necula \email{marian.necula00@gmail.com}
+
+Authors:
+\itemize{
+  \item Bogdan Oancea \email{bogdan.oancea@gmail.com}
+  \item Ana Maria Tiru \email{tiru.ana21@gmail.com}
 }
-\keyword{package}
+
+}
+\keyword{internal}

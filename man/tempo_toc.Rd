@@ -2,29 +2,35 @@
 % Please edit documentation in R/tempo_toc.R
 \name{tempo_toc}
 \alias{tempo_toc}
-\title{tempo_toc}
+\title{List tables available from TEMPO Online}
 \usage{
-tempo_toc(full_description = FALSE, language = c("ro"))
+tempo_toc(full_description = FALSE, language = "ro")
 }
 \arguments{
-\item{full_description}{- implicitly set as false
-if fulldescription == TRUE then starts collecting dates for last updates}
+\item{full_description}{A single logical value. If \code{TRUE}, retrieve the
+domain, sub-domain, survey name, and last-update date for every table.
+This makes one additional request per table and can take several minutes.}
 
-\item{language}{- set the language for data download. Options romanian ro or english en}
+\item{language}{A single string: \code{"ro"} for Romanian (the default) or \code{"en"}
+for English.}
 }
 \value{
-Returns a dataframe object.
+A data frame with \code{name} and \code{code} columns. With
+\code{full_description = TRUE}, it additionally contains \code{Statistical_domain},
+\code{Statistical_sub_domain}, \code{Survey_name}, and \code{Last_update}.
 }
 \description{
-Get TOC for Tempo Online
-function gets a parameter full_description implicitly false 
-if fulldescription == TRUE then starts collecting dates for last updates
+Retrieves the table of contents for the Romanian National Institute of
+Statistics TEMPO Online database.
 }
 \details{
-This functions sends one or multiple GET requests and parses the content into 
-a dataframe
+The function needs an internet connection. It reports an informative
+error when the TEMPO Online service cannot be reached or returns an
+unexpected response.
 }
 \examples{
-tempo_toc(full_description = FALSE)
-
+\dontrun{
+tables <- tempo_toc(language = "en")
+head(tables)
+}
 }

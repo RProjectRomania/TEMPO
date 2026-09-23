@@ -2,37 +2,37 @@
 % Please edit documentation in R/tempo_bulk.R
 \name{tempo_bulk}
 \alias{tempo_bulk}
-\title{Download one or multiple tables from TEMPO Online database}
+\title{Download complete TEMPO Online tables}
 \usage{
-tempo_bulk(codes = list(), language = NULL, directory = NULL)
+tempo_bulk(codes, language = "ro", directory)
 }
 \arguments{
-\item{codes}{- a list containing one or more strings containing the code for
-the table/matrix in TEMPO Online database. See more on
-how to obtain a matrix code from \code{\link{tempo_toc}}}
+\item{codes}{A character vector (or list) of TEMPO matrix codes, such as
+\code{"ACC101B"}. Use \code{\link[=tempo_toc]{tempo_toc()}} to discover available codes.}
 
-\item{language}{- a string to set the language for the downloaded
-tables. Options: "ro" - for Romanian and "en" - for English. If no parameter
-is given, implicitly downloads tables in Romanian}
+\item{language}{A single string: \code{"ro"} for Romanian (the default) or \code{"en"}
+for English.}
 
-\item{directory}{- a valid path where the files will be downloaded. The implicit value 
-is NULL, i.e. current working directory.}
+\item{directory}{A single path for the downloaded CSV files. The directory is
+created when needed.}
+}
+\value{
+The paths of newly downloaded files, invisibly. Existing requested
+files are skipped when their modification date is at least as recent as the
+matrix's published update date.
 }
 \description{
-tempo_bulk
-TEMPO Online database bulk download method. The function checks the
-directory supplied as parameter or the working directory if has named
-files as TEMPO Online matrices. If those files are more recent than
-the last date upon which the TEMPO matrices have been updated,
-the function skips them at download.
+Downloads one or more complete tables from the Romanian National Institute
+of Statistics TEMPO Online database as CSV files.
+}
+\details{
+Large dimensions are requested in sequential chunks to avoid
+exceeding the TEMPO service's query limit. The function writes only to
+\code{directory} and needs an internet connection.
 }
 \examples{
 \dontrun{
-# Download a single table and write on disk
-tempo_bulk("SOM101D", "ro")
-
-# Downloads the whole TEMPO db and write each table on disk.
-# Can take a long time.
-# tempo_bulk(TOC_TEMPO$code, "ro") 
+data_directory <- file.path(tempdir(), "tempo-data")
+files <- tempo_bulk("ACC101B", language = "en", directory = data_directory)
 }
 }

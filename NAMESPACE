@@ -2,6 +2,3 @@
 
 export(tempo_bulk)
 export(tempo_toc)
-import(curl)
-import(jsonlite)
-import(utils)

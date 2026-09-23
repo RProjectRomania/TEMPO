@@ -1,0 +1,128 @@
+---
+title: "Using TEMPO"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using TEMPO}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+`TEMPO` provides access to the Romanian National Institute of Statistics'
+TEMPO Online database. It has two public functions:
+
+* `tempo_toc()` lists the available statistical tables and their matrix codes.
+* `tempo_bulk()` downloads one or more complete tables as CSV files.
+
+The database is an external service, so the examples below need an internet
+connection. They are deliberately not evaluated when this vignette is built.
+
+## Find a table
+
+Start by retrieving the table of contents. The default language is Romanian;
+set `language = "en"` to obtain English table names.
+
+```{r list-tables, eval = FALSE}
+library(TEMPO)
+
+tables <- tempo_toc(language = "en")
+head(tables)
+```
+
+The result is a data frame with `name` and `code` columns. Search the `name`
+column to identify a table of interest, then retain its code.
+
+```{r search-tables, eval = FALSE}
+population_tables <- tables[
+  grepl("population", tables$name, ignore.case = TRUE),
+  c("name", "code")
+]
+head(population_tables)
+```
+
+Use `full_description = TRUE` when you need the statistical domain,
+sub-domain, survey name, and last-update date for every listed table. This
+makes one additional request for every matrix, so it can take a long time.
+
+```{r detailed-toc, eval = FALSE}
+table_details <- tempo_toc(full_description = TRUE, language = "en")
+head(table_details)
+```
+
+## Download a table
+
+Choose an output directory that you control. `tempo_bulk()` creates it if
+needed and writes only there. For example, the code below downloads the
+`ACC101B` matrix in English.
+
+```{r download-one, eval = FALSE}
+data_directory <- file.path(tempdir(), "tempo-data")
+
+files <- tempo_bulk(
+  codes = "ACC101B",
+  language = "en",
+  directory = data_directory
+)
+
+files
+```
+
+`tempo_bulk()` returns the paths of files it downloaded, invisibly. A repeated
+call returns no path when the local file is already current, so construct the
+CSV path from the output directory and matrix code when later steps need the
+file. The downloaded files are ordinary comma-separated CSV files.
+
+```{r read-csv, eval = FALSE}
+csv_path <- file.path(data_directory, "ACC101B.csv")
+accidents <- utils::read.csv(
+  csv_path,
+  stringsAsFactors = FALSE,
+  check.names = FALSE
+)
+utils::head(accidents)
+```
+
+## Download several tables
+
+Pass a character vector to download multiple matrices. Requests are made
+sequentially, which keeps use of the public service conservative.
+
+```{r download-many, eval = FALSE}
+codes <- c("ACC101B", "ACC101C")
+files <- tempo_bulk(codes, language = "ro", directory = data_directory)
+```
+
+Some matrices have dimensions with many selectable values. `TEMPO` splits
+those requests into sequential chunks and combines the resulting CSV content
+into one file per matrix. A complete table can still be large, so download
+only the tables you need.
+
+## Reuse local files
+
+Before replacing a requested file, `tempo_bulk()` compares its modification
+date with the update date published by TEMPO Online. Repeating a download is
+therefore safe: files that are already current are skipped.
+
+```{r incremental, eval = FALSE}
+tempo_bulk("ACC101B", language = "en", directory = data_directory)
+#> Skipping `ACC101B`: the local CSV is up to date.
+```
+
+## Handle a temporarily unavailable service
+
+The service can be unavailable or its response format can change. In that
+case, the functions stop with an informative error. For longer scripts, wrap
+the call in `tryCatch()` and decide how your workflow should recover.
+
+```{r error-handling, eval = FALSE}
+tables <- tryCatch(
+  tempo_toc(language = "en"),
+  error = function(error) {
+    message("TEMPO Online is unavailable: ", conditionMessage(error))
+    NULL
+  }
+)
+```

@@ -1,68 +1,63 @@
-#' @title tempo_toc
-#' 
-#' @description Get TOC for Tempo Online
-#' function gets a parameter full_description implicitly false 
-#' if fulldescription == TRUE then starts collecting dates for last updates 
-#' 
-#' @param full_description - implicitly set as false  
-#' if fulldescription == TRUE then starts collecting dates for last updates
-#' 
-#' @param language - set the language for data download. Options romanian ro or english en
-#' @return Returns a dataframe object. 
-#' 
-#' 
-#' @details This functions sends one or multiple GET requests and parses the content into 
-#' a dataframe
-#' 
-#' @examples 
-#' tempo_toc(full_description = FALSE)
-#' 
-#' @import curl
-#' @import jsonlite
-#' @import utils 
+#' List tables available from TEMPO Online
+#'
+#' Retrieves the table of contents for the Romanian National Institute of
+#' Statistics TEMPO Online database.
+#'
+#' @param full_description A single logical value. If `TRUE`, retrieve the
+#'   domain, sub-domain, survey name, and last-update date for every table.
+#'   This makes one additional request per table and can take several minutes.
+#' @param language A single string: `"ro"` for Romanian (the default) or `"en"`
+#'   for English.
+#'
+#' @return A data frame with `name` and `code` columns. With
+#'   `full_description = TRUE`, it additionally contains `Statistical_domain`,
+#'   `Statistical_sub_domain`, `Survey_name`, and `Last_update`.
+#'
+#' @details The function needs an internet connection. It reports an informative
+#'   error when the TEMPO Online service cannot be reached or returns an
+#'   unexpected response.
+#'
+#' @examples
+#' \dontrun{
+#' tables <- tempo_toc(language = "en")
+#' head(tables)
+#' }
 #' @export
+tempo_toc <- function(full_description = FALSE, language = "ro") {
+  full_description <- .tempo_validate_flag(full_description, "full_description")
+  language <- .tempo_validate_language(language)
 
-tempo_toc <- function(full_description = FALSE, language = c("ro")) {
-  if(length(language) != 1) {
-    message("Invalid argument for language. Arguments accepted: \"ro\" or \"en\".\n")
-    return(invisible(NULL))
+  response <- .tempo_request(.tempo_url("matrix/matrices", language = language))
+  toc <- .tempo_toc_from_response(response)
+
+  if (full_description) {
+    metadata <- lapply(toc$code, .tempo_matrix_metadata, language = language)
+    toc$Statistical_domain <- vapply(
+      metadata,
+      .tempo_ancestor_name,
+      character(1),
+      position = 2L
+    )
+    toc$Statistical_sub_domain <- vapply(
+      metadata,
+      .tempo_ancestor_name,
+      character(1),
+      position = 3L
+    )
+    toc$Survey_name <- vapply(
+      metadata,
+      .tempo_ancestor_name,
+      character(1),
+      position = 4L
+    )
+    toc$Last_update <- vapply(metadata, function(item) {
+      value <- item$ultimaActualizare
+      if (is.null(value) || length(value) != 1L) {
+        return(NA_character_)
+      }
+      as.character(value)
+    }, character(1))
   }
-  if (language[1] == "ro") {
-    response <- curl_fetch_memory("http://statistici.insse.ro:8077/tempo-ins/matrix/matrices")
-    lang <- ""
-  } else if (language[1] == "en") {
-    response <- curl_fetch_memory("http://statistici.insse.ro:8077/tempo-ins/matrix/matrices/?lang=en/")
-    lang <- "/?lang=en/"
-  } else{
-    message("Invalid argument for language: ", language[1], "\nArguments accepted: \"ro\" or \"en\".\n")
-    return (invisible(NULL))
-  }
-  if(!is.logical(full_description)) {
-    message("full_description should have a logical value!\n")
-    return(invisible(NULL))
-  }
-  tempo_logger(response)
-  responsetext <- readBin(response$content, what = "text")
-  tempo_toc <- fromJSON(responsetext, flatten = TRUE)
-  tempo_toc <- tempo_toc[,c(1,2)]
-  if (full_description == TRUE) {
-    message("This will take a while. Grab some coffee!")
-    for (i in 1:length(tempo_toc[, 2])) {
-      lu_response <-
-        curl_fetch_memory(paste0(
-          "http://statistici.insse.ro:8077/tempo-ins/matrix/",
-          tempo_toc[i, 2], lang
-        ))
-      lu_content <- readBin(lu_response$content, what = "text")
-      lu_content <- fromJSON(lu_content, flatten = TRUE)
-      tempo_toc$Statistical_domain[i] <-
-        lu_content$ancestors$name[2]
-      tempo_toc$Statistical_sub_domain[i] <-
-        lu_content$ancestors$name[3]
-      tempo_toc$Survey_name[i] <- lu_content$ancestors$name[4]
-      tempo_toc$Last_update[i] <-
-        lu_content$ultimaActualizare
-    }
-  }
-  return(tempo_toc)
+
+  toc
 }
