@@ -1,6 +1,12 @@
-.gitignore
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
+.DS_Store
 /data
+/doc/
+/Meta/
+output/
+docs/
+*.Rcheck/
+*.tar.gz

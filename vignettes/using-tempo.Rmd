@@ -9,120 +9,386 @@ vignette: >
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(TEMPO)
 ```
 
-`TEMPO` provides access to the Romanian National Institute of Statistics'
-TEMPO Online database. It has two public functions:
+`TEMPO` gives R access to the Romanian National Institute of Statistics'
+TEMPO Online database: roughly 1500 statistical matrices covering population,
+labour, agriculture, trade, prices and more.
 
-* `tempo_toc()` lists the available statistical tables and their matrix codes.
-* `tempo_bulk()` downloads one or more complete tables as CSV files.
+The database is an external service, so the chunks that need it are shown but
+not evaluated when this vignette is built. The chunks that need nothing but
+the package itself do run, so the output you see for them is real.
 
-The database is an external service, so the examples below need an internet
-connection. They are deliberately not evaluated when this vignette is built.
+## A two-minute tour
 
-## Find a table
-
-Start by retrieving the table of contents. The default language is Romanian;
-set `language = "en"` to obtain English table names.
-
-```{r list-tables, eval = FALSE}
+```{r tour, eval = FALSE}
 library(TEMPO)
 
+# 1. Find a table.
+tables <- tempo_search("unemployment", language = "en")
+tables[, c("code", "name")]
+
+# 2. Look at its structure before downloading anything.
+tempo_meta("SOM101E", language = "en")
+
+# 3. Pull the part you need straight into a data frame.
+unemployment <- tempo_get(
+  "SOM101E",
+  filters = list(Years = 2015:2024),
+  language = "en"
+)
+head(unemployment)
+```
+
+The package has three entry points, in increasing order of commitment:
+`tempo_toc()` and `tempo_search()` tell you what exists, `tempo_meta()`
+describes one table, and `tempo_get()` or `tempo_bulk()` fetch data.
+
+## Finding a table
+
+Start from the table of contents. The default language is Romanian; set
+`language = "en"` for English table names.
+
+```{r list-tables, eval = FALSE}
 tables <- tempo_toc(language = "en")
+nrow(tables)
 head(tables)
 ```
 
-The result is a data frame with `name` and `code` columns. Search the `name`
-column to identify a table of interest, then retain its code.
+The result has a `name` and a `code`, plus a `comment` when the service
+supplies one. Searching it is common enough to have its own function, which
+accepts several patterns and searches every character column:
 
-```{r search-tables, eval = FALSE}
-population_tables <- tables[
-  grepl("population", tables$name, ignore.case = TRUE),
-  c("name", "code")
-]
-head(population_tables)
+```{r search, eval = FALSE}
+tempo_search(c("population", "migration"), language = "en")
+
+# Reuse a table of contents you already hold rather than fetching it again.
+tempo_search("population", toc = tables)
 ```
 
-Use `full_description = TRUE` when you need the statistical domain,
-sub-domain, survey name, and last-update date for every listed table. This
-makes one additional request for every matrix, so it can take a long time.
+The service stores table names without diacritics, so search for the
+unaccented spelling: `"sanatate"`, not the accented form.
+
+### Where a table sits in the classification
+
+Two routes give you the statistical domain, sub-domain and survey.
+
+`tempo_hierarchy()` reads the service's own navigation tree. The branch
+structure, currently 8 domains, 70 sub-domains and 262 surveys, arrives in a
+single request:
+
+```{r hierarchy, eval = FALSE}
+branches <- tempo_hierarchy(language = "en", matrices = FALSE)
+table(branches$level)
+subset(branches, level == 1, select = c(code, name))
+```
+
+The service does not include matrices in that listing, so placing every matrix
+in the tree costs one further request per survey. Those are issued
+concurrently and cached, and the default `matrices = TRUE` does it for you:
+
+```{r hierarchy-matrices, eval = FALSE}
+tree <- tempo_hierarchy(language = "en")
+
+# Where does one matrix sit?
+tree[tree$code == "POP105A", c("level", "path")]
+
+# Every matrix under one domain.
+population <- tree[tree$is_matrix & grepl("POPULATIE", tree$path), ]
+head(population[, c("code", "name")])
+```
+
+`tempo_toc(full_description = TRUE)` attaches the same three levels to every
+row of the table of contents. It has to ask about each matrix in turn, so even
+with concurrent requests and caching the first call takes a while:
 
 ```{r detailed-toc, eval = FALSE}
-table_details <- tempo_toc(full_description = TRUE, language = "en")
-head(table_details)
+described <- tempo_toc(full_description = TRUE, language = "en")
+head(described[, c("code", "Statistical_domain", "Last_update")])
+
+# What has been revised most recently?
+head(described[order(described$Last_update, decreasing = TRUE), ])
 ```
 
-## Download a table
+`Last_update` is a `Date`, so it sorts and filters directly. The service
+embeds HTML links in its top-level domain labels; those are stripped from
+every text column, and the URLs are kept in `Press_releases`.
 
-Choose an output directory that you control. `tempo_bulk()` creates it if
-needed and writes only there. For example, the code below downloads the
-`ACC101B` matrix in English.
+## Looking before downloading
 
-```{r download-one, eval = FALSE}
+A TEMPO matrix can be very large: county-by-locality tables crossed with
+decades of years run to millions of observations. `tempo_meta()` tells you
+what you are about to ask for, in a single request.
+
+```{r meta, eval = FALSE}
+meta <- tempo_meta("ACC101B", language = "en")
+meta
+#> <tempo_meta> ACC101B - Fake matrix ACC101B
+#>   AGRICULTURE > Sub-domain > Survey name
+#>   language:    en
+#>   last update: 2025-11-05
+#>   full table:  35 cells, 1 request(s)
+#>   dimensions:  2
+#>     1. Counties (7 values): County 1, County 2, County 3, ...
+#>     2. Years (5 values): Year 2020, Year 2021, Year 2022, ...
+```
+
+The components are there for programmatic use:
+
+```{r meta-parts, eval = FALSE}
+meta$dimensions      # one row per dimension, with how many values each has
+meta$cells           # size of a full download
+meta$requests        # how many HTTP requests that would take
+meta$values$Years    # the selectable values, with the service's identifiers
+```
+
+## Getting data into R
+
+`tempo_get()` sends your selection to the service and returns a data frame.
+Dimensions you do not mention come back whole.
+
+```{r get, eval = FALSE}
+# The whole table.
+accidents <- tempo_get("ACC101B", language = "en")
+
+# One county and a decade: a small request, not a full download followed by
+# a subset in R.
+cluj <- tempo_get(
+  "ACC101B",
+  filters = list(Counties = "Cluj", Years = 2015:2024),
+  language = "en"
+)
+```
+
+Filter values are matched against the dimension's labels: first exactly,
+ignoring case and surrounding space; then as a whole token, which is why
+`Years = 2015:2024` finds `"Year 2015"`; and finally against the service's own
+numeric identifiers. A value that matches nothing is an error that lists what
+is available, rather than a quietly smaller result:
+
+```{r get-error, eval = FALSE}
+tempo_get("ACC101B", filters = list(Counties = "Atlantis"), language = "en")
+#> Error: No value of dimension "Counties" matches "Atlantis". Available
+#> values (first 10 of 42): Alba; Arad; Arges; Bacau; ...
+```
+
+Dimension names can be abbreviated, or given by position:
+
+```{r get-naming, eval = FALSE}
+tempo_get("ACC101B", filters = list(Count = "Cluj"), language = "en")
+tempo_get("ACC101B", filters = list(`2` = 2024), language = "en")
+```
+
+## What tidying does
+
+The CSV that TEMPO Online returns needs work before it can be analysed, and
+`tempo_get()` applies `tempo_tidy()` by default. This chunk runs, so you can
+see exactly what changes. It is the service's own layout, including a footer
+line and an observation marked `":"`:
+
+```{r tidy-input}
+csv <- paste(
+  "Judete,Ani,UM: Numar persoane,Valoare",
+  "Cluj,Anul 2019,Numar persoane,1234",
+  "Cluj,Anul 2020,Numar persoane,:",
+  "Bihor,Anul 2019,Numar persoane,987",
+  ",,,(c) INS 1998-2026",
+  sep = "\n"
+)
+cat(csv)
+```
+
+```{r tidy-output}
+tidy <- tempo_tidy(csv, code = "DEMO101A")
+tidy
+str(tidy)
+```
+
+Four things happened:
+
+* the unit of measure moved out of the `UM:` column *header* into a `unit`
+  column;
+* `Valoare` became a numeric `value`, with `":"` mapped to `NA`;
+* `"Anul 2019"` became the integer `2019`;
+* the trailing copyright line was dropped, while the row whose observation is
+  missing was kept, because its dimension columns are filled.
+
+Sub-annual tables also gain a `Date` column, which is what makes them usable
+in a time-series workflow without per-project label parsing:
+
+```{r tidy-monthly}
+monthly <- paste(
+  "Luni,Ani,UM: Numar,Valoare",
+  "luna ianuarie,Anul 2024,Numar,10",
+  "luna februarie,Anul 2024,Numar,12",
+  "luna decembrie,Anul 2024,Numar,14",
+  sep = "\n"
+)
+tempo_tidy(monthly)
+```
+
+Quarters and semesters are parsed the same way, in Romanian and English. If a
+value cannot be read as a number, it is reported once with a warning and the
+original text is kept in a `value_raw` column, so an unexpected flag becomes
+visible instead of silently turning into `NA`:
+
+```{r tidy-odd}
+odd <- paste(
+  "Judete,Ani,UM: Numar,Valoare",
+  "Cluj,Anul 2019,Numar,1234",
+  "Bihor,Anul 2019,Numar,confidential",
+  sep = "\n"
+)
+suppressWarnings(tempo_tidy(odd))
+```
+
+Pass `tidy = FALSE` to `tempo_get()` to skip all of this and receive the
+service's layout verbatim, every column a character vector.
+
+## Downloading whole tables to disk
+
+`tempo_bulk()` writes complete matrices as CSV files, which suits a pipeline
+that reads the same tables repeatedly or needs them outside R.
+
+```{r bulk, eval = FALSE}
 data_directory <- file.path(tempdir(), "tempo-data")
 
 files <- tempo_bulk(
-  codes = "ACC101B",
+  codes = c("ACC101B", "ACC101C"),
   language = "en",
   directory = data_directory
 )
 
 files
+attr(files, "downloaded")
+attr(files, "reason")
 ```
 
-`tempo_bulk()` returns the paths of files it downloaded, invisibly. A repeated
-call returns no path when the local file is already current, so construct the
-CSV path from the output directory and matrix code when later steps need the
-file. The downloaded files are ordinary comma-separated CSV files.
+The return value names every requested matrix, whether or not it was fetched
+in this call, so the path is always available:
 
-```{r read-csv, eval = FALSE}
-csv_path <- file.path(data_directory, "ACC101B.csv")
-accidents <- utils::read.csv(
-  csv_path,
-  stringsAsFactors = FALSE,
-  check.names = FALSE
-)
-utils::head(accidents)
+```{r bulk-read, eval = FALSE}
+accidents <- tempo_tidy(files[["ACC101B"]], code = "ACC101B")
 ```
 
-## Download several tables
+### Reusing local files correctly
 
-Pass a character vector to download multiple matrices. Requests are made
-sequentially, which keeps use of the public service conservative.
+Next to the CSV files, `tempo_bulk()` keeps a `.tempo-manifest.json`
+recording, for each file, the language, the service's own update string, the
+retrieval time, the number of requests spent and an MD5 checksum. A file is
+reused only when the language, the published revision and the checksum all
+agree.
 
-```{r download-many, eval = FALSE}
-codes <- c("ACC101B", "ACC101C")
-files <- tempo_bulk(codes, language = "ro", directory = data_directory)
-```
-
-Some matrices have dimensions with many selectable values. `TEMPO` splits
-those requests into sequential chunks and combines the resulting CSV content
-into one file per matrix. A complete table can still be large, so download
-only the tables you need.
-
-## Reuse local files
-
-Before replacing a requested file, `tempo_bulk()` compares its modification
-date with the update date published by TEMPO Online. Repeating a download is
-therefore safe: files that are already current are skipped.
-
-```{r incremental, eval = FALSE}
+```{r bulk-incremental, eval = FALSE}
 tempo_bulk("ACC101B", language = "en", directory = data_directory)
 #> Skipping `ACC101B`: the local CSV is up to date.
+#> All requested CSV files are up to date.
+
+# Asking for the other language re-downloads rather than reusing the file.
+tempo_bulk("ACC101B", language = "ro", directory = data_directory)
+
+# Force a download regardless.
+tempo_bulk("ACC101B", language = "en", directory = data_directory,
+           overwrite = TRUE)
 ```
 
-## Handle a temporarily unavailable service
+The manifest is also the provenance record for a reproducible pipeline: it
+says which revision of each matrix your results were computed from, and when
+it was retrieved.
 
-The service can be unavailable or its response format can change. In that
-case, the functions stop with an informative error. For longer scripts, wrap
-the call in `tryCatch()` and decide how your workflow should recover.
+## Large tables
 
-```{r error-handling, eval = FALSE}
-tables <- tryCatch(
-  tempo_toc(language = "en"),
-  error = function(error) {
-    message("TEMPO Online is unavailable: ", conditionMessage(error))
+The service will not answer an arbitrarily large query, so a download is split
+into chunks whose product of selected values stays within
+`getOption("TEMPO.max_cells")`, and the parts are concatenated. Each part's
+CSV header is compared with the first part's, so misaligned columns are an
+error rather than a corrupt file.
+
+You rarely need to touch this, but the controls exist:
+
+```{r options, eval = FALSE}
+options(
+  TEMPO.max_cells = 1e5,       # larger single queries
+  TEMPO.max_connections = 2,   # gentler on the service
+  TEMPO.throttle = 0.2         # at least 0.2s between requests
+)
+```
+
+See `?"TEMPO-options"` for the full list. TEMPO Online is a small public
+service with no published rate limit; the defaults are deliberately modest.
+
+## Caching
+
+The table of contents and the per-matrix metadata change rarely and are
+expensive to fetch, so they are cached. By default the cache lives in the
+session's temporary directory and disappears with the session:
+
+```{r cache}
+tempo_cache_dir()
+```
+
+To keep it between sessions, point it somewhere persistent:
+
+```{r cache-persistent, eval = FALSE}
+tempo_cache_dir(tools::R_user_dir("TEMPO", "cache"))
+
+# Or, in a project .Rprofile:
+options(TEMPO.cache_dir = tools::R_user_dir("TEMPO", "cache"))
+
+tempo_cache_clear()
+```
+
+Observations are never cached; only metadata is.
+
+## When the service misbehaves
+
+TEMPO Online goes down, changes its response format, and occasionally returns
+a 500 that succeeds on the next attempt. Transport failures and the statuses
+worth retrying are retried with exponential backoff before an error surfaces
+at all.
+
+What does surface carries a class, so a script can tell a mistake of its own
+from a problem at the other end:
+
+```{r conditions}
+tryCatch(
+  tempo_toc(language = "fr"),
+  tempo_input_error = function(condition) "my call was wrong",
+  tempo_offline_error = function(condition) "the service is unreachable",
+  tempo_error = function(condition) "something else"
+)
+```
+
+```{r conditions-live, eval = FALSE}
+# Read the HTTP status, and retry only what is worth retrying.
+tryCatch(
+  tempo_get("ACC101B"),
+  tempo_http_error = function(condition) {
+    message("HTTP ", condition$status_code, " from ", condition$url)
     NULL
+  },
+  tempo_offline_error = function(condition) {
+    Sys.sleep(60)
+    tempo_get("ACC101B")
   }
 )
 ```
+
+`?"TEMPO-conditions"` lists every class and the fields it carries. A plain
+`tryCatch(expr, error = ...)` still catches all of them.
+
+## Moving from version 0.1.0
+
+The 0.1.0 API still works. Two behaviours changed on purpose:
+
+* `tempo_bulk()` now returns the paths of **all** requested matrices, named by
+  code, rather than only the newly written ones. Code that looped over the
+  result still works; code that relied on skipped files being absent should
+  consult `attr(files, "downloaded")`.
+* `tempo_toc(full_description = TRUE)` returns `Last_update` as a `Date`
+  instead of a character string, and its `Statistical_domain` no longer
+  contains raw HTML.
+
+Everything else is new: `tempo_get()`, `tempo_meta()`, `tempo_tidy()`,
+`tempo_search()`, `tempo_hierarchy()`, `tempo_cache_dir()`.

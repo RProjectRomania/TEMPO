@@ -1,0 +1,19 @@
+citHeader("To cite TEMPO in publications, use:")
+
+year <- sub("-.*", "", meta[["Date/Publication"]])
+if (length(year) != 1L || is.na(year) || !nzchar(year)) {
+  year <- format(Sys.Date(), "%Y")
+}
+
+bibentry(
+  bibtype  = "Manual",
+  title    = "TEMPO: Tools for Romania's National Institute of Statistics Tempo Data",
+  author   = c(
+    person("Marian", "Necula"),
+    person("Bogdan", "Oancea"),
+    person("Ana Maria", "Tiru")
+  ),
+  year     = year,
+  note     = paste("R package version", meta[["Version"]]),
+  url      = "https://github.com/RProjectRomania/TEMPO"
+)
