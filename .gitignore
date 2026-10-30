@@ -1,9 +1,12 @@
-.gitignore
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
-/data
 .DS_Store
+/data
+/doc/
+/Meta/
 output/
-tests/testthat/logTEMPO.txt
+docs/
+*.Rcheck/
+*.tar.gz

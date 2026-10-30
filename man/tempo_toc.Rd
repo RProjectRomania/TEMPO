@@ -4,33 +4,72 @@
 \alias{tempo_toc}
 \title{List tables available from TEMPO Online}
 \usage{
-tempo_toc(full_description = FALSE, language = "ro")
+tempo_toc(full_description = FALSE, language = "ro", cache = TRUE)
 }
 \arguments{
-\item{full_description}{A single logical value. If \code{TRUE}, retrieve the
-domain, sub-domain, survey name, and last-update date for every table.
-This makes one additional request per table and can take several minutes.}
+\item{full_description}{A single logical value. If \code{TRUE}, also retrieve the
+statistical domain, sub-domain, survey name and last-update date of every
+table. This needs one request per table, which the service answers for
+roughly 1500 matrices, so the first call takes a while even though the
+requests are issued concurrently and cached afterwards. Default \code{FALSE}.}
 
 \item{language}{A single string: \code{"ro"} for Romanian (the default) or \code{"en"}
 for English.}
+
+\item{cache}{A single logical value. If \code{TRUE} (the default), reuse and
+populate the response cache described in \code{\link[=tempo_cache_dir]{tempo_cache_dir()}}.}
 }
 \value{
-A data frame with \code{name} and \code{code} columns. With
-\code{full_description = TRUE}, it additionally contains \code{Statistical_domain},
-\code{Statistical_sub_domain}, \code{Survey_name}, and \code{Last_update}.
+A data frame with one row per matrix and the columns
+\describe{
+\item{\code{name}}{Table name in the requested language.}
+\item{\code{code}}{Matrix code, for example \code{"ACC101B"}.}
+\item{\code{comment}}{Service comment, when the service supplies any.}
+}
+With \code{full_description = TRUE} it additionally contains
+\describe{
+\item{\code{Statistical_domain}, \code{Statistical_sub_domain}, \code{Survey_name}}{The
+first three levels of the service's classification, as plain text.}
+\item{\code{Press_releases}}{Press-release URLs that the service embeds in the
+domain label, space separated, or \code{NA}.}
+\item{\code{Last_update}}{Publication date of the matrix, class \code{Date}.}
+}
 }
 \description{
 Retrieves the table of contents for the Romanian National Institute of
-Statistics TEMPO Online database.
+Statistics TEMPO Online database: one row per statistical matrix, with the
+matrix code needed by \code{\link[=tempo_bulk]{tempo_bulk()}}, \code{\link[=tempo_get]{tempo_get()}} and \code{\link[=tempo_meta]{tempo_meta()}}.
 }
-\details{
-The function needs an internet connection. It reports an informative
-error when the TEMPO Online service cannot be reached or returns an
-unexpected response.
+\section{Text and HTML}{
+
+The service embeds HTML anchors in some labels, most visibly in the
+top-level statistical domains, which arrive as
+\verb{AGRICULTURE <a href="https://insse.ro/...">Press releases</a>}. Those tags
+are stripped from every character column, and the URLs are kept separately
+in \code{Press_releases}. Table names are returned without Romanian diacritics,
+because that is how the service stores them.
 }
+
+\section{Errors}{
+
+The function needs an internet connection and raises classed conditions, so
+a caller can distinguish an unreachable service from a malformed response.
+See \link{TEMPO-conditions}.
+}
+
 \examples{
 \dontrun{
 tables <- tempo_toc(language = "en")
 head(tables)
+nrow(tables)
+
+# The slow, fully described variant. Cached, so a second call is cheap.
+described <- tempo_toc(full_description = TRUE, language = "en")
+head(described[order(described$Last_update, decreasing = TRUE), ])
 }
+}
+\seealso{
+\code{\link[=tempo_search]{tempo_search()}} to filter the result, \code{\link[=tempo_meta]{tempo_meta()}} for the full
+metadata of a single matrix, \code{\link[=tempo_hierarchy]{tempo_hierarchy()}} for the classification
+tree.
 }

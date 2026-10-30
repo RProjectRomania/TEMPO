@@ -1,0 +1,38 @@
+url: https://rprojectromania.github.io/TEMPO/
+
+template:
+  bootstrap: 5
+
+reference:
+- title: Finding a table
+  desc: >
+    What exists in TEMPO Online, and where it sits in the statistical
+    classification.
+  contents:
+  - tempo_toc
+  - tempo_search
+  - tempo_hierarchy
+
+- title: Inspecting a table
+  desc: >
+    The structure, size and publication date of a matrix, before committing to
+    a download.
+  contents:
+  - tempo_meta
+
+- title: Getting data
+  contents:
+  - tempo_get
+  - tempo_bulk
+  - tempo_tidy
+
+- title: Configuration
+  contents:
+  - tempo_cache_dir
+  - tempo_cache_clear
+  - TEMPO-options
+  - TEMPO-conditions
+
+- title: Package
+  contents:
+  - TEMPO-package

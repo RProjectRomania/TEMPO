@@ -4,35 +4,93 @@
 \alias{tempo_bulk}
 \title{Download complete TEMPO Online tables}
 \usage{
-tempo_bulk(codes, language = "ro", directory)
+tempo_bulk(
+  codes,
+  language = "ro",
+  directory,
+  overwrite = FALSE,
+  progress = NULL
+)
 }
 \arguments{
 \item{codes}{A character vector (or list) of TEMPO matrix codes, such as
-\code{"ACC101B"}. Use \code{\link[=tempo_toc]{tempo_toc()}} to discover available codes.}
+\code{"ACC101B"}. Use \code{\link[=tempo_toc]{tempo_toc()}} or \code{\link[=tempo_search]{tempo_search()}} to discover codes.}
 
 \item{language}{A single string: \code{"ro"} for Romanian (the default) or \code{"en"}
 for English.}
 
-\item{directory}{A single path for the downloaded CSV files. The directory is
-created when needed.}
+\item{directory}{A single path for the downloaded CSV files. It is created
+when needed, and nothing outside it is ever written.}
+
+\item{overwrite}{A single logical value. If \code{TRUE}, download every requested
+matrix even when the local copy is already current. Default \code{FALSE}.}
+
+\item{progress}{A single logical value, or \code{NULL} (the default) to follow
+\code{getOption("TEMPO.progress")}, which in turn defaults to
+\code{\link[base:interactive]{base::interactive()}}.}
 }
 \value{
-The paths of newly downloaded files, invisibly. Existing requested
-files are skipped when their modification date is at least as recent as the
-matrix's published update date.
+Invisibly, a character vector of the CSV paths of \strong{all} requested
+matrices, named by matrix code. Three attributes describe what happened:
+\describe{
+\item{\code{downloaded}}{Logical, whether the file was fetched in this call.}
+\item{\code{reason}}{Why each file was or was not fetched: \code{"missing"},
+\code{"outdated"}, \code{"revised"}, \code{"language"}, \code{"modified"},
+\code{"unverifiable"}, \code{"overwrite"} or \code{"current"}.}
+\item{\code{requests}}{Number of HTTP requests spent on each matrix.}
+}
+Up to and including version 0.1.0 only the newly written paths were
+returned, which forced callers to rebuild the paths of skipped files by
+hand.
 }
 \description{
-Downloads one or more complete tables from the Romanian National Institute
-of Statistics TEMPO Online database as CSV files.
+Downloads one or more complete matrices from the Romanian National Institute
+of Statistics TEMPO Online database and writes each as a CSV file. Use
+\code{\link[=tempo_get]{tempo_get()}} instead when you want part of a table, or the data in memory.
 }
-\details{
-Large dimensions are requested in sequential chunks to avoid
-exceeding the TEMPO service's query limit. The function writes only to
-\code{directory} and needs an internet connection.
+\section{Freshness, and why a manifest}{
+
+Alongside the CSV files, \code{tempo_bulk()} maintains \code{.tempo-manifest.json},
+recording for every file the language, the service's own update string, the
+retrieval time, the number of requests and an MD5 checksum. A file is reused
+only when all of the language, the published revision and the checksum
+agree.
+
+A CSV file does not record which language it holds, so the earlier
+modification-time test accepted a Romanian file for an English request and
+reported it as up to date. Files written before the manifest existed are
+still accepted on the old modification-time rule, with a warning that their
+language cannot be verified; delete them, or pass \code{overwrite = TRUE}, to be
+certain.
 }
+
+\section{Query size}{
+
+A full matrix can exceed what the service will answer in one query, so the
+request is split into chunks whose product of selected values stays within
+\code{getOption("TEMPO.max_cells")}. The parts are concatenated, and each part's
+CSV header is checked against the first part's so that misaligned columns
+are an error rather than a corrupt file. See \link{TEMPO-options}.
+}
+
 \examples{
 \dontrun{
 data_directory <- file.path(tempdir(), "tempo-data")
+
 files <- tempo_bulk("ACC101B", language = "en", directory = data_directory)
+files
+attr(files, "reason")
+
+# A second call reuses the file and says so.
+tempo_bulk("ACC101B", language = "en", directory = data_directory)
+
+# Paths are returned for skipped files too, so this always works.
+accidents <- tempo_tidy(files[["ACC101B"]])
+head(accidents)
 }
+}
+\seealso{
+\code{\link[=tempo_get]{tempo_get()}} for filtered, in-memory downloads, \code{\link[=tempo_tidy]{tempo_tidy()}} to
+turn a downloaded CSV into analysis-ready data, \code{\link[=tempo_meta]{tempo_meta()}} to size a
+table first.
 }

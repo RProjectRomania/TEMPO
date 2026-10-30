@@ -6,9 +6,47 @@
 \alias{TEMPO-package}
 \title{TEMPO: Access Romanian National Institute of Statistics Data}
 \description{
-List and download tables from the Romanian National Institute of Statistics
-TEMPO Online database.
+Tools for the Romanian National Institute of Statistics TEMPO Online
+database: find the statistical tables, inspect their structure, and download
+whole tables or selected parts of them.
 }
+\section{Finding a table}{
+
+\code{\link[=tempo_toc]{tempo_toc()}} lists every matrix with its code, \code{\link[=tempo_search]{tempo_search()}} filters
+that list, and \code{\link[=tempo_hierarchy]{tempo_hierarchy()}} returns the classification tree.
+}
+
+\section{Looking before downloading}{
+
+\code{\link[=tempo_meta]{tempo_meta()}} reports a matrix's dimensions, the values selectable in each,
+the publication date, and how many cells and requests a full download would
+cost.
+}
+
+\section{Getting the data}{
+
+\code{\link[=tempo_get]{tempo_get()}} downloads a table, or a filtered part of one, straight into a
+data frame. \code{\link[=tempo_bulk]{tempo_bulk()}} writes whole tables to CSV files and keeps them
+up to date across sessions. \code{\link[=tempo_tidy]{tempo_tidy()}} turns the service's CSV layout
+into analysis-ready data, and is applied by \code{\link[=tempo_get]{tempo_get()}} by default.
+}
+
+\section{Configuration}{
+
+\link{TEMPO-options} documents the options controlling timeouts, retries,
+concurrency and query size; \code{\link[=tempo_cache_dir]{tempo_cache_dir()}} controls response caching;
+\link{TEMPO-conditions} documents the classed errors and warnings.
+}
+
+\section{The service}{
+
+TEMPO Online is a public service of the Romanian National Institute of
+Statistics, reachable only over plain HTTP and offering no documented API
+contract or published rate limit. This package identifies itself with a
+\code{User-Agent}, retries only what is worth retrying, and caps concurrency at
+four connections by default. Please keep it modest.
+}
+
 \seealso{
 Useful links:
 \itemize{
