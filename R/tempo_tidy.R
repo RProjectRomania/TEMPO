@@ -121,6 +121,13 @@
 }
 
 # Classify a column as a time column, by name first and then by content.
+#
+# TEMPO uses two time layouts.  Some matrices carry a dedicated "Ani"/"Years"
+# dimension, optionally alongside "Luni"/"Months".  Others carry a single
+# "Perioade"/"Periods" dimension whose labels mix frequencies, as in
+# "Year 2010", "January 2010", "February 2010".  The second layout must not be
+# treated as a year column: reducing every label to its year would make an
+# annual total and a January value indistinguishable.
 .tempo_time_role <- function(name, values) {
   normalised <- tolower(trimws(name))
   if (grepl("^(ani|anul|anii|years?|year)$", normalised)) {
@@ -135,6 +142,9 @@
   if (grepl("semestr|semester", normalised)) {
     return("semester")
   }
+  if (grepl("^(perioade|perioada|periods?|period)$", normalised)) {
+    return("period")
+  }
 
   distinct <- unique(trimws(values))
   distinct <- distinct[nzchar(distinct) & !is.na(distinct)]
@@ -142,13 +152,21 @@
     return(NA_character_)
   }
 
-  if (length(distinct) <= 12L && !anyNA(.tempo_parse_month(distinct))) {
+  months <- .tempo_parse_month(distinct)
+  quarters <- .tempo_parse_quarter(distinct)
+  years <- .tempo_parse_year(distinct)
+
+  if (length(distinct) <= 12L && !anyNA(months)) {
     return("month")
   }
-  if (length(distinct) <= 4L && !anyNA(.tempo_parse_quarter(distinct))) {
+  if (length(distinct) <= 4L && !anyNA(quarters)) {
     return("quarter")
   }
-  if (!anyNA(.tempo_parse_year(distinct)) &&
+  # A year together with a month or quarter in the same label.
+  if (!anyNA(years) && (any(!is.na(months)) || any(!is.na(quarters)))) {
+    return("period")
+  }
+  if (!anyNA(years) &&
       all(grepl("(^|[^0-9])(18|19|20|21)[0-9]{2}([^0-9]|$)", distinct))) {
     return("year")
   }
@@ -169,9 +187,7 @@
 #' @param code Optional matrix code, recorded on the result as the
 #'   `tempo_code` attribute.
 #' @param periods A single logical value. If `TRUE` (the default), parse the
-#'   time dimensions: the year column becomes an integer, and a `period` column
-#'   of class `Date` is added when a year can be combined with a month, quarter
-#'   or semester. Month, quarter and semester labels themselves are left alone.
+#'   time dimensions. See Time layouts below. Default `TRUE`.
 #' @param na Character vector of strings that mark a missing observation.
 #'   Defaults to `c(":", "")`, the service's own markers.
 #' @param drop_notes A single logical value. If `TRUE` (the default), drop rows
@@ -188,6 +204,23 @@
 #'   received, `unit` holding the unit of measure, `value` as a numeric vector,
 #'   and `period` when a sub-annual period could be reconstructed. The
 #'   attributes `tempo_code` and `tempo_unit` are set when known.
+#'
+#' @section Time layouts:
+#' TEMPO uses two, and they are handled differently.
+#'
+#' Some matrices carry a dedicated `Ani`/`Years` dimension, optionally
+#' alongside `Luni`/`Months`, `Trimestre` or `Semestre`. The year column
+#' becomes an integer, the sub-annual labels are left readable, and a `period`
+#' column of class `Date` is added when the two can be combined.
+#'
+#' Others carry a single `Perioade`/`Periods` dimension whose labels mix
+#' frequencies, as in `"Year 2010"`, `"January 2010"`, `"February 2010"`. Here
+#' the label is left exactly as received, because it is the only thing
+#' distinguishing an annual total from a monthly figure, and two columns are
+#' added instead: `year`, and `period` holding the first day of the month,
+#' quarter or semester named. `period` is `NA` for an annual row, so
+#' `subset(x, !is.na(period))` selects the sub-annual rows and
+#' `subset(x, is.na(period))` the annual ones.
 #'
 #' @section What changed since 0.1.0:
 #' Version 0.1.0 shipped no cleaning at all; every caller rewrote these rules.
@@ -219,6 +252,18 @@
 #' tidy <- tempo_tidy(csv, code = "DEMO101A")
 #' tidy
 #' str(tidy)
+#'
+#' # A combined Periods dimension: the annual total stays distinguishable
+#' # from the monthly figures, which share its year.
+#' mixed <- paste(
+#'   "Counties,Periods,UM: Persons,Value",
+#'   "Cluj,Year 2010,Number of persons,100",
+#'   "Cluj,January 2010,Number of persons,8",
+#'   "Cluj,February 2010,Number of persons,9",
+#'   sep = "\n"
+#' )
+#' tempo_tidy(mixed)
+#' subset(tempo_tidy(mixed), is.na(period))   # the annual row
 #'
 #' # Monthly labels gain a Date column.
 #' monthly <- paste(
@@ -320,6 +365,7 @@ tempo_tidy <- function(x,
 
   # Periods -----------------------------------------------------------------
   period <- NULL
+  derived_year <- NULL
   if (periods && nrow(data)) {
     roles <- vapply(
       dimension_columns,
@@ -329,6 +375,7 @@ tempo_tidy <- function(x,
 
     year <- NULL
     sub_annual <- NULL
+    combined <- NULL
 
     for (position in seq_along(dimension_columns)) {
       index <- dimension_columns[[position]]
@@ -342,7 +389,8 @@ tempo_tidy <- function(x,
         if (!all(is.na(parsed))) {
           year <- parsed
           # Replace the label with the integer year, as the service's
-          # "Anul 2020" is never what a caller wants to compute with.
+          # "Anul 2020" is never what a caller wants to compute with.  Safe
+          # here because a year column carries nothing else.
           if (!anyNA(parsed)) {
             data[[index]] <- parsed
           }
@@ -362,10 +410,45 @@ tempo_tidy <- function(x,
         if (!all(is.na(parsed))) {
           sub_annual <- list(value = parsed, step = 6L)
         }
+      } else if (identical(role, "period") && is.null(combined)) {
+        label <- data[[index]]
+        parsed_year <- .tempo_parse_year(label)
+        if (!all(is.na(parsed_year))) {
+          # The label is left exactly as received: it is the only thing that
+          # distinguishes an annual figure from a monthly one.
+          combined <- list(
+            year = parsed_year,
+            month = .tempo_parse_month(label),
+            quarter = .tempo_parse_quarter(label),
+            semester = .tempo_parse_semester(label)
+          )
+        }
       }
     }
 
-    if (!is.null(year) && !is.null(sub_annual)) {
+    if (!is.null(combined)) {
+      month <- ifelse(
+        !is.na(combined$month),
+        combined$month,
+        ifelse(
+          !is.na(combined$quarter),
+          (combined$quarter - 1L) * 3L + 1L,
+          ifelse(
+            !is.na(combined$semester),
+            (combined$semester - 1L) * 6L + 1L,
+            NA_integer_
+          )
+        )
+      )
+      # NA where the label names no sub-annual period, which is how an annual
+      # row stays distinguishable from a monthly one.
+      period <- as.Date(ifelse(
+        is.na(combined$year) | is.na(month),
+        NA_character_,
+        sprintf("%04d-%02d-01", combined$year, month)
+      ))
+      derived_year <- combined$year
+    } else if (!is.null(year) && !is.null(sub_annual)) {
       month <- (sub_annual$value - 1L) * sub_annual$step + 1L
       period <- as.Date(ifelse(
         is.na(year) | is.na(month),
@@ -411,6 +494,10 @@ tempo_tidy <- function(x,
       )
       data$value_raw <- raw
     }
+  }
+
+  if (!is.null(derived_year) && !"year" %in% names(data)) {
+    data$year <- derived_year
   }
 
   if (!is.null(period)) {

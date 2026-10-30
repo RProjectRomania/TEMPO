@@ -32,6 +32,12 @@
 #'   }
 #'   The unparsed service response is attached as the `"raw"` attribute.
 #'
+#' @section The unit of measure:
+#' The service exposes the unit of measure as a dimension of its own, which is
+#' why a matrix measured in persons reports a final dimension such as
+#' `MU: Persons` with a single value. It is part of the query, so it appears
+#' here; [tempo_tidy()] moves it out of the data into a `unit` column.
+#'
 #' @section Undocumented field names:
 #' TEMPO Online has no published API contract. The dimension and value labels
 #' are read from the first of several plausible field names
@@ -142,9 +148,20 @@ print.tempo_meta <- function(x, ...) {
     }
   ))
   cat(sprintf(
-    "  full table:  %s cells, %s request(s)\n",
+    "  full table:  %s cells%s\n",
     format(x$cells, big.mark = ",", scientific = FALSE, trim = TRUE),
-    if (is.na(x$requests)) "too many" else x$requests
+    if (is.na(x$requests)) {
+      sprintf(
+        paste0(
+          ", over %s requests\n               too large to fetch whole; ",
+          "select values with tempo_get()"
+        ),
+        format(as.numeric(.tempo_opt("max_requests")), big.mark = ",",
+               scientific = FALSE, trim = TRUE)
+      )
+    } else {
+      sprintf(", %d request(s)", x$requests)
+    }
   ))
 
   cat(sprintf("  dimensions:  %d\n", nrow(x$dimensions)))

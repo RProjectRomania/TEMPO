@@ -60,6 +60,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Marian Necula \email{marian.necula00@gmail.com}
   \item Bogdan Oancea \email{bogdan.oancea@gmail.com}
   \item Ana Maria Tiru \email{tiru.ana21@gmail.com}
 }

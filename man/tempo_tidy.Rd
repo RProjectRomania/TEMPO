@@ -24,9 +24,7 @@ CSV text.}
 \code{tempo_code} attribute.}
 
 \item{periods}{A single logical value. If \code{TRUE} (the default), parse the
-time dimensions: the year column becomes an integer, and a \code{period} column
-of class \code{Date} is added when a year can be combined with a month, quarter
-or semester. Month, quarter and semester labels themselves are left alone.}
+time dimensions. See Time layouts below. Default \code{TRUE}.}
 
 \item{na}{Character vector of strings that mark a missing observation.
 Defaults to \code{c(":", "")}, the service's own markers.}
@@ -55,6 +53,25 @@ column is text, the unit of measure hides in a column \emph{header}, years read
 \code{"Anul 2020"} rather than \code{2020}, and missing observations are marked \code{":"}.
 \code{tempo_tidy()} resolves all of that and leaves one row per observation.
 }
+\section{Time layouts}{
+
+TEMPO uses two, and they are handled differently.
+
+Some matrices carry a dedicated \code{Ani}/\code{Years} dimension, optionally
+alongside \code{Luni}/\code{Months}, \code{Trimestre} or \code{Semestre}. The year column
+becomes an integer, the sub-annual labels are left readable, and a \code{period}
+column of class \code{Date} is added when the two can be combined.
+
+Others carry a single \code{Perioade}/\code{Periods} dimension whose labels mix
+frequencies, as in \code{"Year 2010"}, \code{"January 2010"}, \code{"February 2010"}. Here
+the label is left exactly as received, because it is the only thing
+distinguishing an annual total from a monthly figure, and two columns are
+added instead: \code{year}, and \code{period} holding the first day of the month,
+quarter or semester named. \code{period} is \code{NA} for an annual row, so
+\code{subset(x, !is.na(period))} selects the sub-annual rows and
+\code{subset(x, is.na(period))} the annual ones.
+}
+
 \section{What changed since 0.1.0}{
 
 Version 0.1.0 shipped no cleaning at all; every caller rewrote these rules.
@@ -87,6 +104,18 @@ csv <- paste(
 tidy <- tempo_tidy(csv, code = "DEMO101A")
 tidy
 str(tidy)
+
+# A combined Periods dimension: the annual total stays distinguishable
+# from the monthly figures, which share its year.
+mixed <- paste(
+  "Counties,Periods,UM: Persons,Value",
+  "Cluj,Year 2010,Number of persons,100",
+  "Cluj,January 2010,Number of persons,8",
+  "Cluj,February 2010,Number of persons,9",
+  sep = "\n"
+)
+tempo_tidy(mixed)
+subset(tempo_tidy(mixed), is.na(period))   # the annual row
 
 # Monthly labels gain a Date column.
 monthly <- paste(
