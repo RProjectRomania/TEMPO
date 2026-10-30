@@ -19,10 +19,10 @@ expensive to fetch, so \code{TEMPO} caches them. Call \code{tempo_cache_dir()} t
 the directory in use and \code{tempo_cache_dir(path)} to change it.
 }
 \details{
-By default the cache lives in a subdirectory of \code{\link[base:tempfile]{base::tempdir()}}, so it is
+By default the cache lives in a subdirectory of \code{\link[base:tempdir]{base::tempdir()}}, so it is
 discarded when the R session ends and nothing is written outside the session
 temporary area. To keep the cache between sessions, point it at a persistent
-location; \code{\link[tools:userdir]{tools::R_user_dir()}} gives the conventional one:
+location; \code{\link[tools:R_user_dir]{tools::R_user_dir()}} gives the conventional one:
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{tempo_cache_dir(tools::R_user_dir("TEMPO", "cache"))
 }\if{html}{\out{</div>}}

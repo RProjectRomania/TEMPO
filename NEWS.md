@@ -2,6 +2,16 @@
 
 ## Bug fixes
 
+* `tempo_tidy()` collapsed a combined period dimension to its year, which lost
+  the distinction between an annual total and a monthly figure. Many matrices,
+  `SOM101E` among them, carry a single `Perioade`/`Periods` dimension whose
+  labels mix frequencies: `"Year 2010"`, `"January 2010"`,
+  `"February 2010"`. All three became the integer `2010` and the rows became
+  indistinguishable. Such a column is now left exactly as received and gains
+  `year` and `period` columns instead, where `period` is `NA` for an annual
+  row. A dedicated `Ani`/`Years` dimension still becomes an integer in place,
+  since it carries nothing else.
+
 * `tempo_toc(full_description = TRUE)` returned raw HTML in
   `Statistical_domain`. The service embeds anchors in its top-level domain
   labels, so the column held values such as
@@ -56,7 +66,8 @@
 * `tempo_meta()` reports a matrix's dimensions, the values selectable in each,
   its publication date, its position in the statistical classification, and
   how many cells and requests a full download would cost. This metadata was
-  fetched internally but never exposed.
+  fetched internally but never exposed. Matrices that are too large to fetch
+  whole say so, and name the option that governs the limit.
 
 * `tempo_tidy()` turns the service's CSV layout into analysis-ready data: the
   unit of measure is lifted out of the `UM:`/`MU:` column header into a

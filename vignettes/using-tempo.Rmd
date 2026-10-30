@@ -26,16 +26,22 @@ the package itself do run, so the output you see for them is real.
 library(TEMPO)
 
 # 1. Find a table.
-tables <- tempo_search("unemployment", language = "en")
+tables <- tempo_search("unemployed", language = "en")
 tables[, c("code", "name")]
 
-# 2. Look at its structure before downloading anything.
-tempo_meta("SOM101E", language = "en")
+# 2. Look at its structure, and its size, before downloading anything.
+meta <- tempo_meta("SOM101E", language = "en")
+meta
 
-# 3. Pull the part you need straight into a data frame.
+# 3. Pull the slice you need straight into a data frame.
 unemployment <- tempo_get(
   "SOM101E",
-  filters = list(Years = 2015:2024),
+  filters = list(
+    Sex        = "Total",
+    Counties   = "Cluj",
+    Localities = "TOTAL",
+    Periods    = grep("2024", meta$values$Periods$label, value = TRUE)
+  ),
   language = "en"
 )
 head(unemployment)
@@ -122,17 +128,27 @@ decades of years run to millions of observations. `tempo_meta()` tells you
 what you are about to ask for, in a single request.
 
 ```{r meta, eval = FALSE}
-meta <- tempo_meta("ACC101B", language = "en")
+meta <- tempo_meta("SOM101E", language = "en")
 meta
-#> <tempo_meta> ACC101B - Fake matrix ACC101B
-#>   AGRICULTURE > Sub-domain > Survey name
+#> <tempo_meta> SOM101E
+#>   A. SOCIAL STATISTICS > LABOUR FORCE > REGISTERED UNEMPLOYED
 #>   language:    en
-#>   last update: 2025-11-05
-#>   full table:  35 cells, 1 request(s)
-#>   dimensions:  2
-#>     1. Counties (7 values): County 1, County 2, County 3, ...
-#>     2. Years (5 values): Year 2020, Year 2021, Year 2022, ...
+#>   last update: 2026-10-12
+#>   full table:  88,663,248 cells, over 2,000 requests
+#>                too large to fetch whole; select values with tempo_get()
+#>   dimensions:  5
+#>     1. Sex (3 values): Total, Male, Female
+#>     2. Counties (43 values): TOTAL, Alba, Arad, ...
+#>     3. Localities (3182 values): TOTAL, 1017 ALBA IULIA MUNICIPALITY, ...
+#>     4. Periods (216 values): Year 2010, January 2010, February 2010, ...
+#>     5. MU: Persons (1 value): Number of persons
 ```
+
+Two things in that output are worth dwelling on. The table has 88 million
+cells, so it cannot be downloaded whole and `tempo_bulk()` would refuse it.
+And the unit of measure is a dimension of its own, `MU: Persons`, because that
+is how the service models it; [tempo_tidy()] later moves it out of the data
+into a `unit` column.
 
 The components are there for programmatic use:
 
@@ -146,38 +162,43 @@ meta$values$Years    # the selectable values, with the service's identifiers
 ## Getting data into R
 
 `tempo_get()` sends your selection to the service and returns a data frame.
-Dimensions you do not mention come back whole.
+Dimensions you do not mention come back whole, which for a table like the one
+above would be far too much, so name the ones that matter:
 
 ```{r get, eval = FALSE}
-# The whole table.
-accidents <- tempo_get("ACC101B", language = "en")
-
-# One county and a decade: a small request, not a full download followed by
-# a subset in R.
-cluj <- tempo_get(
-  "ACC101B",
-  filters = list(Counties = "Cluj", Years = 2015:2024),
+unemployment <- tempo_get(
+  "SOM101E",
+  filters = list(
+    Sex        = "Total",
+    Counties   = "Cluj",
+    Localities = "TOTAL",
+    Periods    = grep("2024", meta$values$Periods$label, value = TRUE)
+  ),
   language = "en"
 )
 ```
 
+Taking the `Periods` labels from `meta` rather than writing them out is worth
+the habit: it keeps the call working whatever format the service uses for
+those labels.
+
 Filter values are matched against the dimension's labels: first exactly,
-ignoring case and surrounding space; then as a whole token, which is why
-`Years = 2015:2024` finds `"Year 2015"`; and finally against the service's own
-numeric identifiers. A value that matches nothing is an error that lists what
-is available, rather than a quietly smaller result:
+ignoring case and surrounding space; then as a whole token, so `2024` finds
+`"January 2024"`; and finally against the service's own numeric identifiers. A
+value that matches nothing is an error that lists what is available, rather
+than a quietly smaller result:
 
 ```{r get-error, eval = FALSE}
-tempo_get("ACC101B", filters = list(Counties = "Atlantis"), language = "en")
+tempo_get("SOM101E", filters = list(Counties = "Atlantis"), language = "en")
 #> Error: No value of dimension "Counties" matches "Atlantis". Available
-#> values (first 10 of 42): Alba; Arad; Arges; Bacau; ...
+#> values (first 10 of 43): TOTAL; Alba; Arad; Arges; Bacau; ...
 ```
 
 Dimension names can be abbreviated, or given by position:
 
 ```{r get-naming, eval = FALSE}
-tempo_get("ACC101B", filters = list(Count = "Cluj"), language = "en")
-tempo_get("ACC101B", filters = list(`2` = 2024), language = "en")
+tempo_get("SOM101E", filters = list(Count = "Cluj", Period = "January 2024"),
+          language = "en")
 ```
 
 ## What tidying does
@@ -215,7 +236,8 @@ Four things happened:
   missing was kept, because its dimension columns are filled.
 
 Sub-annual tables also gain a `Date` column, which is what makes them usable
-in a time-series workflow without per-project label parsing:
+in a time-series workflow without per-project label parsing. This is the
+layout with a separate `Luni` dimension:
 
 ```{r tidy-monthly}
 monthly <- paste(
@@ -228,8 +250,29 @@ monthly <- paste(
 tempo_tidy(monthly)
 ```
 
-Quarters and semesters are parsed the same way, in Romanian and English. If a
-value cannot be read as a number, it is reported once with a warning and the
+Quarters and semesters are parsed the same way, in Romanian and English.
+
+Many matrices, including `SOM101E` above, instead use a single `Periods`
+dimension whose labels mix frequencies. Those labels are left exactly as
+received, because the label is the only thing separating an annual total from
+a monthly figure of the same year, and `year` and `period` columns are added
+alongside:
+
+```{r tidy-mixed}
+mixed <- paste(
+  "Counties,Periods,UM: Persons,Value",
+  "Cluj,Year 2010,Number of persons,100",
+  "Cluj,January 2010,Number of persons,8",
+  "Cluj,February 2010,Number of persons,9",
+  sep = "\n"
+)
+tempo_tidy(mixed)
+```
+
+`period` is `NA` on the annual row, so `subset(x, !is.na(period))` gives the
+monthly series and `subset(x, is.na(period))` the annual totals.
+
+If a value cannot be read as a number, it is reported once with a warning and the
 original text is kept in a `value_raw` column, so an unexpected flag becomes
 visible instead of silently turning into `NA`:
 

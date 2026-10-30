@@ -50,6 +50,14 @@ statistical classification, and how large a full download would be. This is
 the information needed to choose sensible \code{filters} for \code{\link[=tempo_get]{tempo_get()}}, and
 it answers "how big is this table?" in one request instead of a download.
 }
+\section{The unit of measure}{
+
+The service exposes the unit of measure as a dimension of its own, which is
+why a matrix measured in persons reports a final dimension such as
+\code{MU: Persons} with a single value. It is part of the query, so it appears
+here; \code{\link[=tempo_tidy]{tempo_tidy()}} moves it out of the data into a \code{unit} column.
+}
+
 \section{Undocumented field names}{
 
 TEMPO Online has no published API contract. The dimension and value labels

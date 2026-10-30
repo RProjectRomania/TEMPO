@@ -1,25 +1,12 @@
 ## Test environments
 
-* local: Ubuntu 22.04, R 4.3.3
+* local: macOS Tahoe 26.6.2 (aarch64-apple-darwin23), R 4.6.1
 * GitHub Actions: ubuntu-latest (devel, release, oldrel-1), macOS-latest
   (release), windows-latest (release)
 
 ## R CMD check results
 
 0 errors | 0 warnings | 0 notes
-
-<!-- Re-run `R CMD check --as-cran` on a networked machine before submitting
-     and update this section. The run behind this release was made in a
-     sandbox without outbound network access, which produced two NOTEs that
-     are artifacts of that environment rather than of the package:
-
-       * "Found the following (possibly) invalid URLs" for
-         http://statistici.insse.ro:8077/tempo-online/ and the GitHub URL,
-         neither of which the sandbox could resolve;
-       * "checking for future file timestamps ... unable to verify current
-         time".
-
-     Both should disappear with network access. -->
 
 ## Notes for the reviewer
 

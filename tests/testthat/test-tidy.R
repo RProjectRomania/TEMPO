@@ -181,3 +181,92 @@ test_that("period parsers handle the labels in isolation", {
   expect_equal(.tempo_parse_semester(c("Semestrul I", "Semester 2")), c(1L, 2L))
   expect_true(is.na(.tempo_parse_month("Total")))
 })
+
+# A single "Periods" dimension mixing frequencies, as SOM101E and many other
+# monthly matrices use.  Collapsing these labels to a year would make the
+# annual total indistinguishable from the January figure.
+mixed_csv <- paste(
+  "Counties,Periods,UM: Persons,Value",
+  "Cluj,Year 2010,Number of persons,100",
+  "Cluj,January 2010,Number of persons,8",
+  "Cluj,February 2010,Number of persons,9",
+  "Cluj,Quarter 2 2010,Number of persons,27",
+  "Cluj,Year 2011,Number of persons,110",
+  sep = "\n"
+)
+
+test_that("a combined Periods column is recognised as such", {
+  expect_equal(
+    .tempo_time_role("Periods", c("Year 2010", "January 2010")),
+    "period"
+  )
+  expect_equal(
+    .tempo_time_role("Perioade", c("Anul 2010", "luna ianuarie 2010")),
+    "period"
+  )
+  # Detected from content even when the column is named something else.
+  expect_equal(
+    .tempo_time_role("Time", c("Year 2010", "March 2010", "Year 2011")),
+    "period"
+  )
+  # A plain year column is still a year column.
+  expect_equal(.tempo_time_role("Ani", c("Anul 2019", "Anul 2020")), "year")
+  expect_equal(
+    .tempo_time_role("Time", c("Year 2019", "Year 2020")),
+    "year"
+  )
+})
+
+test_that("a combined Periods label is never collapsed to its year", {
+  tidy <- tempo_tidy(mixed_csv)
+
+  # The label survives verbatim: it is the only thing telling an annual total
+  # apart from a monthly figure sharing the same year.
+  expect_type(tidy$Periods, "character")
+  expect_equal(tidy$Periods[[1L]], "Year 2010")
+  expect_equal(tidy$Periods[[2L]], "January 2010")
+  expect_equal(length(unique(tidy$Periods)), 5L)
+})
+
+test_that("a combined Periods column yields year and period columns", {
+  tidy <- tempo_tidy(mixed_csv)
+
+  expect_equal(tidy$year, c(2010L, 2010L, 2010L, 2010L, 2011L))
+  expect_s3_class(tidy$period, "Date")
+  expect_equal(
+    tidy$period,
+    as.Date(c(NA, "2010-01-01", "2010-02-01", "2010-04-01", NA))
+  )
+})
+
+test_that("annual and sub-annual rows are separable after tidying", {
+  tidy <- tempo_tidy(mixed_csv)
+
+  annual <- subset(tidy, is.na(period))
+  sub_annual <- subset(tidy, !is.na(period))
+
+  expect_equal(annual$value, c(100, 110))
+  expect_equal(sub_annual$value, c(8, 9, 27))
+  expect_equal(nrow(annual) + nrow(sub_annual), nrow(tidy))
+})
+
+test_that("a dedicated year column is still converted in place", {
+  # The two layouts must not be confused: this one has no other information in
+  # the column, so the integer year is the useful form.
+  tidy <- tempo_tidy(service_csv)
+  expect_type(tidy$Ani, "integer")
+  expect_false("year" %in% names(tidy))
+})
+
+test_that("a Periods column of years alone still parses", {
+  annual_only <- paste(
+    "Counties,Periods,UM: Persons,Value",
+    "Cluj,Year 2019,Number of persons,1",
+    "Cluj,Year 2020,Number of persons,2",
+    sep = "\n"
+  )
+
+  tidy <- tempo_tidy(annual_only)
+  expect_equal(tidy$year, c(2019L, 2020L))
+  expect_true(all(is.na(tidy$period)))
+})
