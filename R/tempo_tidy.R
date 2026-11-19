@@ -201,9 +201,23 @@
 #'   columns. Default `"value"` and `"unit"`.
 #'
 #' @return A data frame with one row per observation: the dimension columns as
-#'   received, `unit` holding the unit of measure, `value` as a numeric vector,
-#'   and `period` when a sub-annual period could be reconstructed. The
-#'   attributes `tempo_code` and `tempo_unit` are set when known.
+#'   received but with the service's field padding removed, `unit` holding the
+#'   unit of measure, `value` as a numeric vector, and `period` when a
+#'   sub-annual period could be reconstructed. The attributes `tempo_code` and
+#'   `tempo_unit` are set when known.
+#'
+#' @section Field padding:
+#' TEMPO Online separates its CSV fields with `", "`, so every column but the
+#' first arrives with a leading space in its values: a row reads `"Total"`,
+#' `" Cluj"`, `" TOTAL"`, `" Year 2023"`. Leading and trailing white space is
+#' therefore removed from every value, so that a data frame is consistent
+#' across its own columns and its values match the labels [tempo_meta()]
+#' reports, which the service supplies as JSON already trimmed. Without this,
+#' `subset(x, Judete == "Cluj")` selects no rows at all.
+#'
+#' Up to and including version 0.2.0 only the column *names* were trimmed, so
+#' the values kept their padding. Pass `tidy = FALSE` to [tempo_get()] for the
+#' service's own layout, padding included.
 #'
 #' @section Time layouts:
 #' TEMPO uses two, and they are handled differently.
@@ -302,6 +316,29 @@ tempo_tidy <- function(x,
   }
 
   names(data) <- trimws(names(data))
+
+  # Field padding -----------------------------------------------------------
+  #
+  # The service separates its CSV fields with ", ", so every value but the
+  # first column's arrives with a leading space: "Total", " Cluj", " TOTAL",
+  # " Year 2023".  Left alone a data frame is inconsistent across its own
+  # columns, and its values no longer match the labels tempo_meta() reports,
+  # which the service supplies as JSON and which are already collapsed and
+  # trimmed.  So subset(x, Counties == "Cluj") silently selects no rows, and
+  # table() or aggregate() would split a county in two if the service ever
+  # changed its column order.  The padding is a CSV formatting artifact, not
+  # data, so it goes; tempo_get(tidy = FALSE) still returns the service's own
+  # layout untouched.
+  #
+  # Done with trimws() rather than read.csv(strip.white = TRUE) because
+  # strip.white applies only to unquoted fields, and the service quotes the
+  # values that carry thousands separators, as in `, "1 234 567"`.  trimws()
+  # also reaches a data frame passed in directly, which strip.white cannot.
+  for (index in seq_along(data)) {
+    if (is.character(data[[index]])) {
+      data[[index]] <- trimws(data[[index]])
+    }
+  }
 
   # Unit of measure ---------------------------------------------------------
   unit_column <- grep("^(um|mu)[[:space:]]*:", tolower(names(data)))
