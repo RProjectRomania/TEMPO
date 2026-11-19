@@ -12,6 +12,11 @@
 
 This is a patch release with a single bug fix, described in `NEWS.md`.
 
+It follows 0.2.0 after a short interval because the bug produced silently
+wrong results rather than an error: a filter on any dimension after the first
+matched no rows at all. We thought that warranted a prompt fix rather than
+holding it back.
+
 `tempo_tidy()` left the TEMPO Online service's field padding on the values it
 returned. The service separates its CSV fields with `", "`, so every column but
 the first arrived with a leading space in its values, as in `" Cluj"`. Column
