@@ -270,3 +270,66 @@ test_that("a Periods column of years alone still parses", {
   expect_equal(tidy$year, c(2019L, 2020L))
   expect_true(all(is.na(tidy$period)))
 })
+
+# Field padding ---------------------------------------------------------------
+#
+# The service separates its CSV fields with ", ", so every column but the first
+# arrives padded in both its header and its values.  Confirmed against the live
+# service with SOM101E, whose rows read "Total", " Cluj", " TOTAL",
+# " Year 2023".
+
+test_that("the service's field padding is stripped from values", {
+  padded <- paste(
+    "Sex, Counties, Localities, Periods, UM: Persons, Valoare",
+    "Total, Cluj, TOTAL, Year 2023, Number of persons, 4182",
+    sep = "\n"
+  )
+
+  tidy <- tempo_tidy(padded)
+
+  expect_equal(tidy$Sex[[1L]], "Total")
+  expect_equal(tidy$Counties[[1L]], "Cluj")
+  expect_equal(tidy$Localities[[1L]], "TOTAL")
+  expect_equal(tidy$Periods[[1L]], "Year 2023")
+  expect_equal(tidy$unit[[1L]], "Number of persons")
+  expect_equal(tidy$value[[1L]], 4182)
+  expect_equal(tidy$year[[1L]], 2023L)
+  # An annual label names no sub-annual period.
+  expect_true(is.na(tidy$period[[1L]]))
+})
+
+test_that("a padded value can be selected by its label", {
+  # The failure mode this prevents: subset(x, Counties == "Cluj") selecting no
+  # rows because the value is really " Cluj".
+  padded <- paste(
+    "Sex, Counties, UM: Persons, Valoare",
+    "Total, Cluj, Number of persons, 1",
+    "Total, Bihor, Number of persons, 2",
+    sep = "\n"
+  )
+
+  tidy <- tempo_tidy(padded)
+
+  expect_equal(nrow(subset(tidy, Counties == "Cluj")), 1L)
+  expect_equal(sum(tidy$value[tidy$Counties == "Bihor"]), 2)
+  expect_setequal(tidy$Counties, c("Cluj", "Bihor"))
+})
+
+test_that("padding is stripped from a data frame passed in directly", {
+  # read.csv(strip.white = TRUE) could not reach this path, which is why the
+  # trimming is done with trimws() instead.
+  frame <- data.frame(
+    Sex = "Total",
+    Counties = " Cluj",
+    `UM: Persons` = " Number of persons",
+    Valoare = " 4182",
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+
+  tidy <- tempo_tidy(frame)
+
+  expect_equal(tidy$Counties[[1L]], "Cluj")
+  expect_equal(tidy$unit[[1L]], "Number of persons")
+  expect_equal(tidy$value[[1L]], 4182)
+})

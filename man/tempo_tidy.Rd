@@ -43,9 +43,10 @@ columns. Default \code{"value"} and \code{"unit"}.}
 }
 \value{
 A data frame with one row per observation: the dimension columns as
-received, \code{unit} holding the unit of measure, \code{value} as a numeric vector,
-and \code{period} when a sub-annual period could be reconstructed. The
-attributes \code{tempo_code} and \code{tempo_unit} are set when known.
+received but with the service's field padding removed, \code{unit} holding the
+unit of measure, \code{value} as a numeric vector, and \code{period} when a
+sub-annual period could be reconstructed. The attributes \code{tempo_code} and
+\code{tempo_unit} are set when known.
 }
 \description{
 The CSV that TEMPO Online returns is not directly usable: the observation
@@ -53,6 +54,21 @@ column is text, the unit of measure hides in a column \emph{header}, years read
 \code{"Anul 2020"} rather than \code{2020}, and missing observations are marked \code{":"}.
 \code{tempo_tidy()} resolves all of that and leaves one row per observation.
 }
+\section{Field padding}{
+
+TEMPO Online separates its CSV fields with \code{", "}, so every column but the
+first arrives with a leading space in its values: a row reads \code{"Total"},
+\code{" Cluj"}, \code{" TOTAL"}, \code{" Year 2023"}. Leading and trailing white space is
+therefore removed from every value, so that a data frame is consistent
+across its own columns and its values match the labels \code{\link[=tempo_meta]{tempo_meta()}}
+reports, which the service supplies as JSON already trimmed. Without this,
+\code{subset(x, Judete == "Cluj")} selects no rows at all.
+
+Up to and including version 0.2.0 only the column \emph{names} were trimmed, so
+the values kept their padding. Pass \code{tidy = FALSE} to \code{\link[=tempo_get]{tempo_get()}} for the
+service's own layout, padding included.
+}
+
 \section{Time layouts}{
 
 TEMPO uses two, and they are handled differently.

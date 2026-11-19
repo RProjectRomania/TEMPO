@@ -101,9 +101,19 @@ test_that("tempo_get(tidy = FALSE) keeps the service layout", {
 
   raw <- tempo_get("SML101A", tidy = FALSE)
 
-  expect_true("Valoare" %in% names(raw))
-  expect_true(any(grepl("^UM:", names(raw))))
-  expect_type(raw$Valoare, "character")
+  # The service's fields arrive ", " separated, so compare trimmed names, as
+  # tempo_tidy() does.
+  trimmed <- trimws(names(raw))
+
+  expect_true("Valoare" %in% trimmed)
+  expect_true(any(grepl("^UM:", trimmed)))
+  expect_type(raw[[which(trimmed == "Valoare")]], "character")
+  # Untidied means untouched, so the padding is still on the values.  Not on
+  # the names: read.table() reads its header line with strip.white = TRUE
+  # regardless of the strip.white argument, so the service's ", " never
+  # reaches a column name in R.  That is also why trimws(names(data)) in
+  # tempo_tidy() only matters for a data frame passed in directly.
+  expect_true(startsWith(raw[[which(trimmed == "Ani")]][[1L]], " "))
 })
 
 test_that("a chunked download reassembles every row exactly once", {

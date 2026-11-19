@@ -1,7 +1,7 @@
 Package: TEMPO
 Type: Package
 Title: Tools for Romania's National Institute of Statistics Tempo Data
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: c(
     person("Marian", "Necula", email = "marian.necula00@gmail.com", role = c("aut", "cre")),
     person("Bogdan", "Oancea", email = "bogdan.oancea@gmail.com", role = "aut"),

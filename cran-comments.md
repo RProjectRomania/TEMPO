@@ -10,15 +10,18 @@
 
 ## Notes for the reviewer
 
-This is a minor release. It fixes five bugs in the 0.1.0 download and metadata
-handling and adds five exported functions; `NEWS.md` lists them.
+This is a patch release with a single bug fix, described in `NEWS.md`.
 
-Two user-visible return values changed, both documented in `NEWS.md` and in
-the vignette's migration section:
+`tempo_tidy()` left the TEMPO Online service's field padding on the values it
+returned. The service separates its CSV fields with `", "`, so every column but
+the first arrived with a leading space in its values, as in `" Cluj"`. Column
+names were already trimmed; values were not, so a value did not match the label
+`tempo_meta()` reports for it and `subset(x, Judete == "Cluj")` selected no
+rows. Values are now trimmed as well as names.
 
-* `tempo_bulk()` now returns the paths of all requested matrices rather than
-  only the newly downloaded ones.
-* `tempo_toc(full_description = TRUE)` returns `Last_update` as a `Date`.
+One user-visible value therefore changes: a column that held `" Cluj"` now
+holds `"Cluj"`. `tempo_get(tidy = FALSE)` still returns the service's own
+layout untouched.
 
 ### Writing to the file system
 

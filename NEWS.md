@@ -1,3 +1,36 @@
+# TEMPO 0.2.1
+
+## Bug fixes
+
+* `tempo_tidy()` left the TEMPO Online service's field padding on the values.
+  The service separates its CSV fields with `", "`, so every column but the
+  first arrived with a leading space in its values, as in `"Total"`,
+  `" Cluj"`, `" TOTAL"`, `" Year 2023"`. Column *names* were already trimmed;
+  values were not. A data frame was therefore inconsistent across its own
+  columns, and a value no longer matched the label `tempo_meta()` reports for
+  it, because the service supplies those as JSON already collapsed and
+  trimmed. The visible consequence was that
+  `subset(accidents, Judete == "Cluj")` selected no rows at all, and `table()`
+  or `aggregate()` would have split one county in two had the service changed
+  its column order. Values are now trimmed as well as names.
+
+  This changes a user-visible value: a column that held `" Cluj"` now holds
+  `"Cluj"`. Code that worked around the padding with `trimws()` is unaffected,
+  since trimming an already-trimmed value does nothing; only code matching the
+  padded form exactly needs updating. `tempo_get(tidy = FALSE)` still returns
+  the service's own layout untouched.
+
+  The trimming uses `trimws()` rather than `read.csv(strip.white = TRUE)`,
+  because `strip.white` applies only to unquoted fields and the service quotes
+  the values carrying thousands separators, and because `trimws()` also
+  reaches a data frame passed to `tempo_tidy()` directly.
+
+* The test suite's fake service now reproduces the service's `", "` separated
+  header and rows, so this class of bug is caught without contacting the
+  network. The live-service test that checks the CSV layout compares trimmed
+  column names, which is what `tempo_tidy()` does; previously it compared the
+  untrimmed names and only its first assertion ever ran.
+
 # TEMPO 0.2.0
 
 ## Bug fixes

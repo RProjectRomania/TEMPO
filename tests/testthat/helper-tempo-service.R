@@ -162,14 +162,18 @@ tempo_fake_app <- function() {
 
     header <- if (identical(payload$matCode, "BADHDR") &&
                   req$app$locals$pivot_calls %% 2L == 0L) {
-      "Judete,Ani,UM: Numar,TOTAL ALTERED"
+      "Judete, Ani, UM: Numar, TOTAL ALTERED"
     } else {
-      "Judete,Ani,UM: Numar,Valoare"
+      # The live service separates header fields with ", ", so every column
+      # but the first arrives padded, and it leaves the observation column
+      # named "Valoare" even when language is "en".  Both were confirmed
+      # against the real service.
+      "Judete, Ani, UM: Numar, Valoare"
     }
 
     grid <- expand.grid(d2 = ids[[2L]], d1 = ids[[1L]], stringsAsFactors = FALSE)
     rows <- sprintf(
-      "County %d,Anul %d,Numar,%s",
+      "County %d, Anul %d, Numar, %s",
       as.integer(grid$d1) - 1000L,
       as.integer(grid$d2) - 2000L + 2019L,
       ifelse(seq_len(nrow(grid)) == 1L, ":", seq_len(nrow(grid)))
